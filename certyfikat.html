@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certyfikat MaxWatt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,900&family=Barlow:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:  #080808;
+      --yellow: #FFD000;
+      --white:  #F5F5F5;
+      --gray:   #666;
+      --red:    #E5001A;
+    }
+    body { background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; font-family: 'Barlow', sans-serif; }
+
+    .cert {
+      width: 900px;
+      max-width: 100%;
+      background: var(--black);
+      border: 2px solid var(--yellow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Corner brackets */
+    .cert::before, .cert::after {
+      content: '';
+      position: absolute;
+      width: 40px; height: 40px;
+      border-color: var(--yellow);
+      border-style: solid;
+    }
+    .cert::before { top: 8px; left: 8px; border-width: 3px 0 0 3px; }
+    .cert::after  { bottom: 8px; right: 8px; border-width: 0 3px 3px 0; }
+
+    /* Top stripe */
+    .cert-top {
+      background: var(--yellow);
+      padding: 0.6rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cert-top-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--black);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    /* Header */
+    .cert-header {
+      padding: 2rem 2.5rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: 2rem;
+      border-bottom: 1px solid #222;
+    }
+    .cert-brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 3.5rem;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .cert-brand span { color: var(--yellow); }
+    .cert-doc-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 0.3rem;
+    }
+    .cert-id-block { text-align: right; }
+    .cert-id-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--gray);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .cert-id {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.1rem;
+      color: var(--yellow);
+      letter-spacing: 0.1em;
+    }
+    .cert-date {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--gray);
+      margin-top: 0.3rem;
+    }
+
+    /* Title strip */
+    .cert-title-strip {
+      background: #111;
+      border-top: 1px solid #222;
+      border-bottom: 1px solid #222;
+      padding: 1.2rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .cert-title-strip::before {
+      content: '⚡';
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .cert-title-main {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+    .cert-title-sub {
+      font-size: 0.8rem;
+      color: var(--gray);
+      margin-top: 0.1rem;
+    }
+
+    /* Vehicle info */
+    .cert-vehicle {
+      padding: 1.5rem 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #222;
+    }
+    .cert-field {
+      background: var(--black);
+      padding: 0.8rem 1rem;
+    }
+    .cert-field-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 0.3rem;
+    }
+    .cert-field-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--white);
+    }
+
+    /* Stats before/after */
+    .cert-stats {
+      padding: 1.5rem 2.5rem;
+      border-bottom: 1px solid #222;
+    }
+    .cert-stats-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .cert-stats-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #222;
+    }
+    .cert-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: #1a1a1a;
+    }
+    .cert-stat {
+      background: var(--black);
+      padding: 1rem;
+    }
+    .cert-stat-name {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gray);
+      margin-bottom: 0.6rem;
+    }
+    .cert-stat-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .cert-stat-before {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gray);
+      text-decoration: line-through;
+    }
+    .cert-stat-arrow { color: var(--yellow); font-size: 1rem; }
+    .cert-stat-after {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--yellow);
+      line-height: 1;
+    }
+    .cert-stat-unit {
+      font-size: 0.7rem;
+      color: var(--gray);
+      align-self: flex-end;
+      margin-bottom: 0.2rem;
+    }
+    .cert-stat-delta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: #00E556;
+      margin-top: 0.3rem;
+    }
+
+    /* Services performed */
+    .cert-services {
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid #222;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .cert-services-col-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 0.6rem;
+    }
+    .cert-service-list { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+    .cert-service-list li {
+      font-size: 0.82rem;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .cert-service-list li::before { content: '✓'; color: #00E556; font-weight: 700; flex-shrink: 0; }
+
+    /* UNLOCKED stamp */
+    .cert-stamp-wrap {
+      position: absolute;
+      right: 2.5rem;
+      top: 50%;
+      transform: translateY(-50%) rotate(12deg);
+      opacity: 0.12;
+      pointer-events: none;
+    }
+    .cert-stamp {
+      border: 6px solid var(--yellow);
+      padding: 0.6rem 1.2rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 2.5rem;
+      color: var(--yellow);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1;
+    }
+
+    /* Footer */
+    .cert-footer {
+      padding: 1rem 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 1rem;
+    }
+    .cert-signature {
+      border-top: 1px solid #333;
+      padding-top: 0.5rem;
+    }
+    .cert-sig-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--white);
+    }
+    .cert-sig-title {
+      font-size: 0.7rem;
+      color: var(--gray);
+      margin-top: 0.1rem;
+    }
+    .cert-qr {
+      width: 60px;
+      height: 60px;
+      background: #111;
+      border: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.5rem;
+      color: var(--gray);
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    .cert-disclaimer {
+      font-size: 0.6rem;
+      color: var(--gray);
+      line-height: 1.5;
+      text-align: right;
+    }
+
+    /* Bottom stripe */
+    .cert-bottom {
+      background: #111;
+      border-top: 1px solid #222;
+      padding: 0.5rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cert-bottom-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--gray);
+      letter-spacing: 0.1em;
+    }
+    .cert-bottom-brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.9rem;
+      color: var(--white);
+    }
+    .cert-bottom-brand span { color: var(--yellow); }
+
+    /* PRINT */
+    @media print {
+      body { background: white; padding: 0; }
+      .cert { border-color: #000; width: 100%; }
+      .no-print { display: none; }
+    }
+
+    /* Controls */
+    .controls {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-print {
+      background: var(--yellow);
+      color: #000;
+      border: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.8rem 2rem;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+    .btn-print:hover { background: #FFA800; }
+    .editable { outline: none; border-bottom: 1px dashed #444; min-width: 60px; display: inline-block; }
+    .editable:focus { border-bottom-color: var(--yellow); color: var(--yellow); }
+    .edit-hint { font-size: 0.7rem; color: var(--gray); text-align: center; margin-bottom: 1rem; font-family: 'Barlow', sans-serif; }
+  </style>
+</head>
+<body>
+
+<p class="edit-hint no-print">✏️ Kliknij w żółte pola żeby edytować dane klienta → potem wydrukuj</p>
+
+<div class="cert">
+
+  <!-- STAMP WATERMARK -->
+  <div class="cert-stamp-wrap">
+    <div class="cert-stamp">UNLOCKED</div>
+  </div>
+
+  <!-- TOP STRIPE -->
+  <div class="cert-top">
+    <span class="cert-top-label">MaxWatt · Certyfikat tuningu elektrycznego</span>
+    <span class="cert-top-label">maxwatt.pl · 663 517 069</span>
+  </div>
+
+  <!-- HEADER -->
+  <div class="cert-header">
+    <div>
+      <div class="cert-brand">Max<span>Watt</span></div>
+      <div class="cert-doc-title">Certyfikat wykonania tuningu · Electric Scooter Performance Certificate</div>
+    </div>
+    <div class="cert-id-block">
+      <div class="cert-id-label">Nr certyfikatu</div>
+      <div class="cert-id">MW-<span class="editable" contenteditable="true">2026-001</span></div>
+      <div class="cert-date">Data: <span class="editable" contenteditable="true">27.06.2026</span></div>
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="cert-title-strip">
+    <div>
+      <div class="cert-title-main">Potwierdzenie wykonania tuningu</div>
+      <div class="cert-title-sub">Niniejszy certyfikat potwierdza wykonanie profesjonalnego tuningu elektrycznej hulajnogi przez warsztat MaxWatt</div>
+    </div>
+  </div>
+
+  <!-- VEHICLE INFO -->
+  <div class="cert-vehicle">
+    <div class="cert-field">
+      <div class="cert-field-label">Właściciel</div>
+      <div class="cert-field-value"><span class="editable" contenteditable="true">Jan Kowalski</span></div>
+    </div>
+    <div class="cert-field">
+      <div class="cert-field-label">Marka i model</div>
+      <div class="cert-field-value"><span class="editable" contenteditable="true">Kukirin G2</span></div>
+    </div>
+    <div class="cert-field">
+      <div class="cert-field-label">Pakiet</div>
+      <div class="cert-field-value"><span class="editable" contenteditable="true">Pro · 999 zł</span></div>
+    </div>
+    <div class="cert-field">
+      <div class="cert-field-label">Kontroler</div>
+      <div class="cert-field-value"><span class="editable" contenteditable="true">Flipsky FSESC 6.7</span></div>
+    </div>
+    <div class="cert-field">
+      <div class="cert-field-label">Napięcie baterii</div>
+      <div class="cert-field-value"><span class="editable" contenteditable="true">48V</span></div>
+    </div>
+    <div class="cert-field">
+      <div class="cert-field-label">Tryb sterowania</div>
+      <div class="cert-field-value"><span class="editable" contenteditable="true">FOC · Sensored</span></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="cert-stats">
+    <div class="cert-stats-title">Pomiary wydajności · przed i po tuningu</div>
+    <div class="cert-stats-grid">
+      <div class="cert-stat">
+        <div class="cert-stat-name">Prędkość maksymalna</div>
+        <div class="cert-stat-row">
+          <span class="cert-stat-before"><span class="editable" contenteditable="true">45</span></span>
+          <span class="cert-stat-arrow">→</span>
+          <span class="cert-stat-after"><span class="editable" contenteditable="true">68</span></span>
+          <span class="cert-stat-unit">km/h</span>
+        </div>
+        <div class="cert-stat-delta">+<span class="editable" contenteditable="true">51</span>% wzrost</div>
+      </div>
+      <div class="cert-stat">
+        <div class="cert-stat-name">Prąd silnika maks.</div>
+        <div class="cert-stat-row">
+          <span class="cert-stat-before"><span class="editable" contenteditable="true">20</span></span>
+          <span class="cert-stat-arrow">→</span>
+          <span class="cert-stat-after"><span class="editable" contenteditable="true">50</span></span>
+          <span class="cert-stat-unit">A</span>
+        </div>
+        <div class="cert-stat-delta">+<span class="editable" contenteditable="true">150</span>% wzrost</div>
+      </div>
+      <div class="cert-stat">
+        <div class="cert-stat-name">Moc szczytowa</div>
+        <div class="cert-stat-row">
+          <span class="cert-stat-before"><span class="editable" contenteditable="true">800</span></span>
+          <span class="cert-stat-arrow">→</span>
+          <span class="cert-stat-after"><span class="editable" contenteditable="true">1800</span></span>
+          <span class="cert-stat-unit">W</span>
+        </div>
+        <div class="cert-stat-delta">+<span class="editable" contenteditable="true">125</span>% wzrost</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="cert-services">
+    <div>
+      <div class="cert-services-col-title">Wykonane prace</div>
+      <ul class="cert-service-list">
+        <li><span class="editable" contenteditable="true">Demontaż oryginalnego kontrolera</span></li>
+        <li><span class="editable" contenteditable="true">Montaż kontrolera VESC Flipsky FSESC 6.7</span></li>
+        <li><span class="editable" contenteditable="true">Motor detection · kalibracja FOC</span></li>
+        <li><span class="editable" contenteditable="true">Kalibracja gazu i hamulca elektrycznego</span></li>
+        <li><span class="editable" contenteditable="true">Instalacja modułu Bluetooth</span></li>
+        <li><span class="editable" contenteditable="true">Jazda próbna i fine-tuning parametrów</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="cert-services-col-title">Warunki gwarancji</div>
+      <ul class="cert-service-list">
+        <li>30 dni gwarancji na robociznę</li>
+        <li>Gwarancja producenta na części VESC</li>
+        <li>Modyfikacja unieważnia gwarancję producenta pojazdu</li>
+        <li>Odpowiedzialność za użytkowanie po stronie właściciela</li>
+        <li>Support techniczny: 663 517 069</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="cert-footer">
+    <div class="cert-signature">
+      <div class="cert-sig-name">Mateusz Janus</div>
+      <div class="cert-sig-title">MaxWatt · Technik tuningu · Szamotuły</div>
+    </div>
+    <div class="cert-qr">QR<br>maxwatt.pl</div>
+    <div class="cert-disclaimer">
+      Certyfikat wystawiony przez MaxWatt · NIP: 6060050393<br>
+      ul. Powstańców Wlkp. 12 · 64-500 Szamotuły<br>
+      maxwatt.pl · 663 517 069
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="cert-bottom">
+    <span class="cert-bottom-text">© 2026 MaxWatt · Fabryka ustawia limity. My je zdejmujemy.</span>
+    <span class="cert-bottom-brand">Max<span>Watt</span></span>
+  </div>
+
+</div>
+
+<div class="controls no-print">
+  <button class="btn-print" onclick="window.print()">🖨️ Drukuj certyfikat</button>
+</div>
+
+</body>
+</html>
