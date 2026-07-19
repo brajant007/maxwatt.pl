@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MaxWatt – Tuning Elektrycznych Hulajnóg | Szamotuły</title>
+  <meta name="description" content="Profesjonalny tuning elektrycznych hulajnóg — wymiana kontrolera VESC, upgrade baterii, serwis mechaniczny. Szamotuły, Poznań i okolice." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:  #0a0a0a;
+      --dark:   #111111;
+      --panel:  #181818;
+      --border: #242424;
+      --yellow: #FFD000;
+      --yellow2:#FFA800;
+      --white:  #F5F5F5;
+      --gray:   #888888;
+      --red:    #E5001A;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+
+    /* NAV */
+    nav { position: fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 5vw; height:64px; background:rgba(10,10,10,0.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+    .nav-logo { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.6rem; letter-spacing:0.04em; color:var(--white); text-decoration:none; }
+    .nav-logo span { color:var(--yellow); }
+    .nav-links { display:flex; gap:1.8rem; list-style:none; }
+    .nav-links a { color:var(--gray); text-decoration:none; font-size:0.85rem; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; transition:color 0.2s; }
+    .nav-links a:hover { color:var(--yellow); }
+    .nav-cta { background:var(--yellow) !important; color:var(--black) !important; padding:0.4rem 1.1rem; font-weight:700 !important; border-radius:2px; }
+    .nav-cta:hover { background:var(--yellow2) !important; }
+    .nav-hamburger { display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:5px; padding:4px; }
+    .nav-hamburger span { display:block; width:24px; height:2px; background:var(--white); transition:all 0.3s; }
+    .mobile-menu { display:none; position:fixed; top:64px; left:0; right:0; background:var(--dark); border-bottom:1px solid var(--border); padding:1.5rem 5vw; z-index:99; flex-direction:column; gap:1rem; }
+    .mobile-menu a { color:var(--white); text-decoration:none; font-size:1rem; font-weight:500; padding:0.5rem 0; border-bottom:1px solid var(--border); }
+    .mobile-menu.open { display:flex; }
+
+    /* HERO */
+    .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:120px 5vw 80px; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 60% 50% at 70% 50%, rgba(255,208,0,0.07) 0%, transparent 70%), radial-gradient(ellipse 30% 40% at 80% 20%, rgba(229,0,26,0.05) 0%, transparent 60%); pointer-events:none; }
+    .hero-eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:1.5rem; display:flex; align-items:center; gap:0.8rem; }
+    .hero-eyebrow::before { content:''; display:block; width:32px; height:2px; background:var(--yellow); }
+    .hero-headline { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(3.5rem,10vw,9rem); line-height:0.92; letter-spacing:-0.01em; text-transform:uppercase; max-width:14ch; margin-bottom:2rem; }
+    .hero-headline .accent { color:var(--yellow); }
+    .hero-headline .strike { position:relative; color:var(--gray); }
+    .hero-headline .strike::after { content:''; position:absolute; left:0; right:0; top:50%; height:4px; background:var(--red); transform:translateY(-50%) rotate(-2deg); }
+    .hero-sub { font-size:1.1rem; color:var(--gray); max-width:48ch; margin-bottom:3rem; line-height:1.7; }
+    .hero-actions { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; }
+    .btn-primary { display:inline-block; background:var(--yellow); color:var(--black); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.85rem 2.2rem; text-decoration:none; border-radius:2px; transition:background 0.2s, transform 0.15s; }
+    .btn-primary:hover { background:var(--yellow2); transform:translateY(-2px); }
+    .btn-ghost { display:inline-block; border:1px solid var(--border); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:1.05rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.85rem 2.2rem; text-decoration:none; border-radius:2px; transition:border-color 0.2s, color 0.2s; }
+    .btn-ghost:hover { border-color:var(--yellow); color:var(--yellow); }
+    .hero-stats { display:flex; gap:3rem; margin-top:5rem; padding-top:3rem; border-top:1px solid var(--border); flex-wrap:wrap; }
+    .stat-num { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:2.8rem; color:var(--yellow); line-height:1; }
+    .stat-label { font-size:0.78rem; color:var(--gray); text-transform:uppercase; letter-spacing:0.1em; margin-top:0.3rem; }
+
+    /* TICKER */
+    .ticker { background:var(--yellow); color:var(--black); padding:0.6rem 0; overflow:hidden; white-space:nowrap; }
+    .ticker-inner { display:inline-flex; animation:ticker 25s linear infinite; }
+    .ticker-item { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; padding:0 2rem; }
+    @keyframes ticker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+    /* SHARED */
+    section { padding:6rem 5vw; }
+    .section-eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:1rem; }
+    .section-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(2rem,5vw,3.5rem); text-transform:uppercase; line-height:1; margin-bottom:1.5rem; }
+    .section-lead { color:var(--gray); max-width:55ch; margin-bottom:3rem; }
+
+    /* USŁUGI TABS */
+    .services { background:var(--dark); }
+    .tabs { display:flex; gap:0; border:1px solid var(--border); margin-bottom:2.5rem; overflow-x:auto; }
+    .tab-btn { flex:1; min-width:120px; background:none; border:none; border-right:1px solid var(--border); color:var(--gray); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; padding:1rem 1.2rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+    .tab-btn:last-child { border-right:none; }
+    .tab-btn.active { background:var(--yellow); color:var(--black); }
+    .tab-btn:hover:not(.active) { color:var(--yellow); background:rgba(255,208,0,0.05); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); }
+    .service-card { background:var(--panel); padding:1.8rem; transition:background 0.2s; }
+    .service-card:hover { background:#1e1e1e; }
+    .service-icon { font-size:1.5rem; margin-bottom:0.8rem; }
+    .service-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem; color:var(--white); }
+    .service-desc { font-size:0.85rem; color:var(--gray); line-height:1.6; margin-bottom:0.8rem; }
+    .service-price { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; color:var(--yellow); }
+
+    /* PAKIETY */
+    .packages-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; margin-top:3rem; }
+    .pkg { background:var(--panel); border:1px solid var(--border); padding:2.5rem 2rem; border-radius:3px; position:relative; transition:border-color 0.2s, transform 0.2s; display:flex; flex-direction:column; }
+    .pkg:hover { border-color:var(--yellow); transform:translateY(-4px); }
+    .pkg.featured { border-color:var(--yellow); background:#1a1900; }
+    .pkg-badge { position:absolute; top:-1px; right:1.5rem; background:var(--yellow); color:var(--black); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.3rem 0.8rem; }
+    .pkg-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-bottom:0.5rem; }
+    .pkg-price { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:3.5rem; color:var(--white); line-height:1; margin-bottom:0.3rem; }
+    .pkg-price span { font-size:1.2rem; font-weight:600; color:var(--gray); }
+    .pkg-desc { font-size:0.88rem; color:var(--gray); margin-bottom:1.8rem; padding-bottom:1.8rem; border-bottom:1px solid var(--border); line-height:1.6; }
+    .pkg-features { list-style:none; display:flex; flex-direction:column; gap:0.7rem; margin-bottom:2rem; flex:1; }
+    .pkg-features li { font-size:0.88rem; color:var(--white); display:flex; align-items:flex-start; gap:0.6rem; }
+    .pkg-features li::before { content:'✓'; color:var(--yellow); font-weight:700; flex-shrink:0; }
+    .pkg-cta { display:block; text-align:center; padding:0.75rem; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; border-radius:2px; transition:all 0.2s; }
+    .pkg-cta-outline { border:1px solid var(--border); color:var(--white); }
+    .pkg-cta-outline:hover { border-color:var(--yellow); color:var(--yellow); }
+    .pkg-cta-solid { background:var(--yellow); color:var(--black); }
+    .pkg-cta-solid:hover { background:var(--yellow2); }
+
+    /* PROCES */
+    .process-steps { display:grid; grid-template-columns:repeat(4,1fr); gap:0; border:1px solid var(--border); margin-top:3rem; }
+    .step { padding:2rem 1.8rem; border-right:1px solid var(--border); }
+    .step:last-child { border-right:none; }
+    .step-num { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:4rem; color:var(--border); line-height:1; margin-bottom:1rem; }
+    .step-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.1rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem; }
+    .step-desc { font-size:0.85rem; color:var(--gray); line-height:1.6; }
+
+    /* WHY */
+    .why { background:var(--dark); }
+    .why-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); margin-top:3rem; }
+    .why-card { background:var(--panel); padding:2rem 1.8rem; }
+    .why-icon { font-size:1.8rem; margin-bottom:1rem; }
+    .why-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem; }
+    .why-desc { font-size:0.85rem; color:var(--gray); line-height:1.6; }
+
+    /* MOBILE BANNER */
+    .mobile-banner { background:var(--yellow); color:var(--black); padding:3rem 5vw; display:flex; align-items:center; justify-content:space-between; gap:2rem; flex-wrap:wrap; }
+    .mobile-banner-text { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(1.5rem,4vw,2.5rem); text-transform:uppercase; line-height:1.1; }
+    .mobile-banner-sub { font-size:0.9rem; margin-top:0.4rem; opacity:0.7; }
+    .btn-dark { display:inline-block; background:var(--black); color:var(--yellow); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.85rem 2rem; text-decoration:none; border-radius:2px; white-space:nowrap; transition:opacity 0.2s; }
+    .btn-dark:hover { opacity:0.85; }
+
+    /* FAQ */
+    .faq-list { margin-top:3rem; display:flex; flex-direction:column; gap:0; border:1px solid var(--border); }
+    .faq-item { border-bottom:1px solid var(--border); }
+    .faq-item:last-child { border-bottom:none; }
+    .faq-q { width:100%; background:none; border:none; color:var(--white); font-family:'Barlow',sans-serif; font-size:0.95rem; font-weight:600; text-align:left; padding:1.3rem 1.5rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:1rem; transition:color 0.2s; }
+    .faq-q:hover { color:var(--yellow); }
+    .faq-arrow { font-size:1rem; color:var(--yellow); transition:transform 0.3s; flex-shrink:0; }
+    .faq-item.open .faq-arrow { transform:rotate(180deg); }
+    .faq-a { display:none; padding:0 1.5rem 1.3rem; font-size:0.88rem; color:var(--gray); line-height:1.7; }
+    .faq-item.open .faq-a { display:block; }
+
+    /* KONTAKT */
+    .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; margin-top:3rem; }
+    .contact-info { display:flex; flex-direction:column; gap:1.5rem; }
+    .contact-item { display:flex; align-items:flex-start; gap:1rem; }
+    .contact-icon { width:40px; height:40px; background:var(--panel); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; border-radius:2px; }
+    .contact-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gray); margin-bottom:0.2rem; }
+    .contact-value { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:1.05rem; color:var(--white); }
+    .contact-value a { color:var(--white); text-decoration:none; }
+    .contact-value a:hover { color:var(--yellow); }
+    .social-links { display:flex; gap:0.8rem; margin-top:0.5rem; }
+    .social-link { display:flex; align-items:center; gap:0.5rem; background:var(--panel); border:1px solid var(--border); color:var(--gray); text-decoration:none; padding:0.5rem 1rem; border-radius:2px; font-size:0.85rem; font-weight:500; transition:all 0.2s; }
+    .social-link:hover { border-color:var(--yellow); color:var(--yellow); }
+    .contact-form { display:flex; flex-direction:column; gap:1rem; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .form-field { display:flex; flex-direction:column; gap:0.4rem; }
+    .form-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gray); }
+    .form-input,.form-textarea,.form-select { background:var(--panel); border:1px solid var(--border); color:var(--white); padding:0.75rem 1rem; font-family:'Barlow',sans-serif; font-size:0.9rem; border-radius:2px; outline:none; transition:border-color 0.2s; width:100%; }
+    .form-input:focus,.form-textarea:focus,.form-select:focus { border-color:var(--yellow); }
+    .form-textarea { resize:vertical; min-height:110px; }
+    .form-select option { background:var(--panel); }
+    .form-submit { background:var(--yellow); color:var(--black); border:none; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.9rem 2rem; cursor:pointer; border-radius:2px; transition:background 0.2s; align-self:flex-start; }
+    .form-submit:hover { background:var(--yellow2); }
+    .form-note { font-size:0.75rem; color:var(--gray); line-height:1.5; }
+    .form-note a { color:var(--gray); }
+    .form-note a:hover { color:var(--yellow); }
+
+    /* FOOTER */
+    footer { background:var(--dark); border-top:1px solid var(--border); }
+    .footer-main { display:grid; grid-template-columns:2fr 1fr 1fr; gap:3rem; padding:3rem 5vw; }
+    .footer-brand-name { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.6rem; color:var(--white); margin-bottom:0.5rem; }
+    .footer-brand-name span { color:var(--yellow); }
+    .footer-tagline { font-size:0.85rem; color:var(--gray); font-style:italic; margin-bottom:1rem; }
+    .footer-desc { font-size:0.82rem; color:var(--gray); line-height:1.6; max-width:35ch; }
+    .footer-col-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--yellow); margin-bottom:1rem; }
+    .footer-links { list-style:none; display:flex; flex-direction:column; gap:0.6rem; }
+    .footer-links a { color:var(--gray); text-decoration:none; font-size:0.85rem; transition:color 0.2s; }
+    .footer-links a:hover { color:var(--white); }
+    .footer-bottom { border-top:1px solid var(--border); padding:1.2rem 5vw; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+    .footer-copy { font-size:0.78rem; color:var(--gray); }
+    .footer-legal { display:flex; gap:1.5rem; }
+    .footer-legal a { font-size:0.78rem; color:var(--gray); text-decoration:none; }
+    .footer-legal a:hover { color:var(--yellow); }
+
+    /* RESPONSIVE */
+    @media (max-width:900px) {
+      .process-steps { grid-template-columns:1fr 1fr; }
+      .step { border-right:none; border-bottom:1px solid var(--border); }
+      .step:nth-child(odd) { border-right:1px solid var(--border); }
+      .step:last-child { border-bottom:none; }
+      .footer-main { grid-template-columns:1fr 1fr; }
+      .footer-main > div:first-child { grid-column:1/-1; }
+    }
+    @media (max-width:768px) {
+      .nav-links { display:none; }
+      .nav-hamburger { display:flex; }
+      .contact-grid { grid-template-columns:1fr; }
+      .form-row { grid-template-columns:1fr; }
+    }
+    @media (max-width:540px) {
+      .process-steps { grid-template-columns:1fr; }
+      .step { border-right:none !important; }
+      .footer-main { grid-template-columns:1fr; }
+      .hero-stats { gap:1.5rem; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .ticker-inner { animation:none; }
+      * { transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">Max<span>Watt</span></a>
+  <ul class="nav-links">
+    <li><a href="#uslugi">Usługi</a></li>
+    <li><a href="#pakiety">Pakiety</a></li>
+    <li><a href="#proces">Jak działamy</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#kontakt" class="nav-cta">Kontakt</a></li>
+  </ul>
+  <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#uslugi" onclick="toggleMenu()">Usługi</a>
+  <a href="#pakiety" onclick="toggleMenu()">Pakiety</a>
+  <a href="#proces" onclick="toggleMenu()">Jak działamy</a>
+  <a href="#faq" onclick="toggleMenu()">FAQ</a>
+  <a href="#kontakt" onclick="toggleMenu()">Kontakt</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Szamotuły &amp; Poznań · Tuning elektrycznych hulajnóg</p>
+  <h1 class="hero-headline">
+    <span class="strike">Fabryka</span><br>
+    ustawia<br>
+    <span class="accent">limity.</span><br>
+    My je<br>
+    zdejmujemy.
+  </h1>
+  <p class="hero-sub">Profesjonalny tuning elektrycznych hulajnóg — od wymiany kół po kontroler VESC i upgrade baterii. Twój sprzęt może więcej. My to udowodnimy.</p>
+  <div class="hero-actions">
+    <a href="#kontakt" class="btn-primary">Umów tuning</a>
+    <a href="#pakiety" class="btn-ghost">Zobacz pakiety</a>
+  </div>
+  <div class="hero-stats">
+    <div><div class="stat-num">VESC</div><div class="stat-label">Kontroler open-source</div></div>
+    <div><div class="stat-num">+40%</div><div class="stat-label">Wzrost mocy średnio</div></div>
+    <div><div class="stat-num">52V</div><div class="stat-label">Upgrade baterii</div></div>
+    <div><div class="stat-num">3 msc</div><div class="stat-label">Support po tuningu</div></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">Wymiana kontrolera VESC</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Upgrade baterii</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Serwis mechaniczny</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Mobilny dojazd</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Wymiana kół i opon</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Amortyzatory</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">LED i oświetlenie</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Szamotuły · Poznań · Okolice</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Wymiana kontrolera VESC</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Upgrade baterii</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Serwis mechaniczny</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Mobilny dojazd</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Wymiana kół i opon</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Amortyzatory</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">LED i oświetlenie</span><span class="ticker-item">✦</span>
+    <span class="ticker-item">Szamotuły · Poznań · Okolice</span><span class="ticker-item">✦</span>
+  </div>
+</div>
+
+<!-- USŁUGI -->
+<section class="services" id="uslugi">
+  <p class="section-eyebrow">Oferta</p>
+  <h2 class="section-title">Co robimy</h2>
+  <p class="section-lead">Kompleksowy tuning — od prostych modyfikacji mechanicznych po zaawansowaną elektronikę. Wszystko w jednym miejscu.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('elektronika')">⚡ Elektronika</button>
+    <button class="tab-btn" onclick="switchTab('mechanika')">🔧 Mechanika</button>
+    <button class="tab-btn" onclick="switchTab('serwis')">🛠 Serwis</button>
+    <button class="tab-btn" onclick="switchTab('estetyka')">🎨 Estetyka</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-elektronika">
+    <div class="service-card"><div class="service-icon">⚡</div><div class="service-name">Wymiana kontrolera VESC</div><p class="service-desc">Demontaż fabrycznego kontrolera, montaż VESC, pełna kalibracja i programowanie pod Twój silnik.</p><div class="service-price">od 999 zł</div></div>
+    <div class="service-card"><div class="service-icon">🔋</div><div class="service-name">Upgrade baterii</div><p class="service-desc">Wymiana baterii na wyższą pojemność lub wyższe napięcie (52V). Większy zasięg i lepsza prędkość.</p><div class="service-price">od 200 zł robocizna</div></div>
+    <div class="service-card"><div class="service-icon">📱</div><div class="service-name">Moduł Bluetooth</div><p class="service-desc">Instalacja modułu BLE do sterowania parametrami przez aplikację VESC Tool Mobile.</p><div class="service-price">od 80 zł</div></div>
+    <div class="service-card"><div class="service-icon">🔓</div><div class="service-name">Odblokowanie software</div><p class="service-desc">Modyfikacja firmware na wybranych modelach bez wymiany hardware. Szybka i tańsza opcja.</p><div class="service-price">150–250 zł</div></div>
+    <div class="service-card"><div class="service-icon">📊</div><div class="service-name">Diagnostyka elektroniki</div><p class="service-desc">Podłączenie do systemu, analiza parametrów, raport z możliwości sprzętu i zaleceń.</p><div class="service-price">50–80 zł</div></div>
+    <div class="service-card"><div class="service-icon">🛡</div><div class="service-name">Alarm i GPS tracker</div><p class="service-desc">Instalacja systemu antykradzieżowego — alarm wibracyjny i lokalizator GPS z powiadomieniami.</p><div class="service-price">od 150 zł robocizna</div></div>
+  </div>
+
+  <div class="tab-panel" id="tab-mechanika">
+    <div class="service-card"><div class="service-icon">🛞</div><div class="service-name">Wymiana kół i opon</div><p class="service-desc">Montaż opon terenowych, slicków lub większych rozmiarów. Lepsza przyczepność i komfort jazdy.</p><div class="service-price">od 60 zł</div></div>
+    <div class="service-card"><div class="service-icon">🏗</div><div class="service-name">Upgrade amortyzatorów</div><p class="service-desc">Wymiana fabrycznych amortyzatorów na lepsze, regulowane. Znacząca poprawa komfortu na nierównościach.</p><div class="service-price">od 100 zł robocizna</div></div>
+    <div class="service-card"><div class="service-icon">🛑</div><div class="service-name">Serwis hamulców</div><p class="service-desc">Wymiana klocków, tarcz, regulacja, wymiana płynu hamulcowego. Pewne i liniowe hamowanie.</p><div class="service-price">od 80 zł</div></div>
+    <div class="service-card"><div class="service-icon">🎯</div><div class="service-name">Kierownica i grips</div><p class="service-desc">Wymiana kierownicy, chwyty antypoślizgowe, wsporniki na różne wysokości.</p><div class="service-price">od 40 zł robocizna</div></div>
+    <div class="service-card"><div class="service-icon">💺</div><div class="service-name">Siodełko i przedłużki</div><p class="service-desc">Montaż siodełka, regulacja wysokości, przedłużki ramy dla wyższych użytkowników.</p><div class="service-price">od 60 zł robocizna</div></div>
+    <div class="service-card"><div class="service-icon">🏁</div><div class="service-name">Custom build od zera</div><p class="service-desc">Składanie hulajnogi custom na wybranych komponentach. Wycena indywidualna.</p><div class="service-price">Wycena indywidualna</div></div>
+  </div>
+
+  <div class="tab-panel" id="tab-serwis">
+    <div class="service-card"><div class="service-icon">🔍</div><div class="service-name">Przegląd okresowy</div><p class="service-desc">Kompletna inspekcja mechaniczna i elektryczna. Lista usterek i zaleceń na piśmie.</p><div class="service-price">od 100 zł</div></div>
+    <div class="service-card"><div class="service-icon">⚙️</div><div class="service-name">Naprawa usterek</div><p class="service-desc">Diagnozujemy i naprawiamy. Hulajnogi po upadku, po zalaniu, nieodpalające — dajemy radę.</p><div class="service-price">od 100 zł</div></div>
+    <div class="service-card"><div class="service-icon">🔋</div><div class="service-name">Regeneracja baterii</div><p class="service-desc">Sprawdzenie ogniw, wymiana uszkodzonych, kalibracja BMS. Przywracamy zasięg.</p><div class="service-price">Wycena indywidualna</div></div>
+    <div class="service-card"><div class="service-icon">🔩</div><div class="service-name">Dokręcanie i regulacja</div><p class="service-desc">Podstawowy serwis — dokręcenie śrub, regulacja hamulców, smarowanie łożysk.</p><div class="service-price">od 50 zł</div></div>
+  </div>
+
+  <div class="tab-panel" id="tab-estetyka">
+    <div class="service-card"><div class="service-icon">🎨</div><div class="service-name">Oklejanie hulajnogi</div><p class="service-desc">Folia samochodowa w wybranym kolorze lub wzorze. Własny projekt, własna identyfikacja.</p><div class="service-price">Wycena indywidualna</div></div>
+    <div class="service-card"><div class="service-icon">💡</div><div class="service-name">Oświetlenie LED</div><p class="service-desc">Paski LED underglow, dodatkowe światła, podświetlenie kół. Efekt gwarantowany.</p><div class="service-price">od 80 zł robocizna</div></div>
+    <div class="service-card"><div class="service-icon">🔈</div><div class="service-name">Klakson i sygnały</div><p class="service-desc">Montaż głośnego klaksonu, kierunkowskazów, dodatkowych świateł bezpieczeństwa.</p><div class="service-price">od 50 zł robocizna</div></div>
+    <div class="service-card"><div class="service-icon">🏷</div><div class="service-name">Naklejki i numery</div><p class="service-desc">Własne naklejki, numery startowe, logo. Druk i montaż.</p><div class="service-price">od 30 zł</div></div>
+  </div>
+</section>
+
+<!-- PAKIETY -->
+<section id="pakiety">
+  <p class="section-eyebrow">Pakiety</p>
+  <h2 class="section-title">Gotowe zestawy</h2>
+  <p class="section-lead">Nie wiesz od czego zacząć? Wybierz pakiet — masz wszystko w jednej cenie, bez niespodzianek.</p>
+  <div class="packages-grid">
+    <div class="pkg">
+      <p class="pkg-name">Pakiet Start</p>
+      <div class="pkg-price">349 <span>zł</span></div>
+      <p class="pkg-desc">Diagnostyka i odblokowanie software. Idealny punkt wejścia — zobaczysz efekt bez dużej inwestycji.</p>
+      <ul class="pkg-features">
+        <li>Pełna diagnostyka sprzętu</li>
+        <li>Odblokowanie limitów programowo</li>
+        <li>Raport z wykresami przed / po</li>
+        <li>Konsultacja po odbiorze</li>
+      </ul>
+      <a href="#kontakt" class="pkg-cta pkg-cta-outline">Zamów</a>
+    </div>
+    <div class="pkg featured">
+      <div class="pkg-badge">Najpopularniejszy</div>
+      <p class="pkg-name">Pakiet Pro</p>
+      <div class="pkg-price">999 <span>zł</span></div>
+      <p class="pkg-desc">Wymiana kontrolera na VESC + pełna kalibracja. Realna różnica w przyspieszeniu i prędkości.</p>
+      <ul class="pkg-features">
+        <li>Demontaż fabrycznego kontrolera</li>
+        <li>Montaż kontrolera VESC</li>
+        <li>Pełna kalibracja i programowanie</li>
+        <li>Moduł Bluetooth do aplikacji</li>
+        <li>Jazda próbna i fine-tuning</li>
+        <li>30 dni support</li>
+      </ul>
+      <a href="#kontakt" class="pkg-cta pkg-cta-solid">Zamów</a>
+    </div>
+    <div class="pkg">
+      <p class="pkg-name">Pakiet MaxWatt</p>
+      <div class="pkg-price">1799 <span>zł</span></div>
+      <p class="pkg-desc">Pełny tuning bez kompromisów. Nowy kontroler, nowa bateria, optymalizacja pod Twój styl jazdy.</p>
+      <ul class="pkg-features">
+        <li>Wszystko z pakietu Pro</li>
+        <li>Upgrade baterii na 52V</li>
+        <li>Optymalizacja pod styl jazdy</li>
+        <li>3 miesiące support</li>
+        <li>Certyfikat tuningu MaxWatt</li>
+      </ul>
+      <a href="#kontakt" class="pkg-cta pkg-cta-outline">Zamów</a>
+    </div>
+  </div>
+  <p style="margin-top:2rem; font-size:0.82rem; color:var(--gray);">Serwis i naprawa — od 100 zł &nbsp;·&nbsp; Mobilny dojazd — +80 zł &nbsp;·&nbsp; Konsultacja online — 50 zł</p>
+</section>
+
+<!-- PROCES -->
+<section id="proces" style="background:var(--dark);">
+  <p class="section-eyebrow">Jak działamy</p>
+  <h2 class="section-title">Prosto i bez lania wody</h2>
+  <div class="process-steps">
+    <div class="step"><div class="step-num">01</div><div class="step-title">Kontakt</div><p class="step-desc">Piszesz lub dzwonisz. Ustalamy model sprzętu, cel tuningu i termin. Możemy przyjechać do Ciebie.</p></div>
+    <div class="step"><div class="step-num">02</div><div class="step-title">Diagnostyka</div><p class="step-desc">Podłączamy sprzęt do systemu. Mierzysz punkt startowy — dane na ekranie, zero zgadywania.</p></div>
+    <div class="step"><div class="step-num">03</div><div class="step-title">Tuning</div><p class="step-desc">Wymiana kontrolera, programowanie VESC, kalibracja, serwis mechaniczny — wszystko na umowie.</p></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">Odbiór</div><p class="step-desc">Jazda próbna, raport przed/po, certyfikat MaxWatt. Wychodzisz z zupełnie innym sprzętem.</p></div>
+  </div>
+</section>
+
+<!-- MOBILE BANNER -->
+<div class="mobile-banner">
+  <div>
+    <div class="mobile-banner-text">Przyjeżdżamy do Ciebie.<br>Mobilny tuning w terenie.</div>
+    <div class="mobile-banner-sub">Szamotuły, Poznań i okolice · Dojazd +80 zł</div>
+  </div>
+  <a href="tel:663517069" class="btn-dark">Zadzwoń: 663 517 069</a>
+</div>
+
+<!-- WHY -->
+<section class="why" id="dlaczego">
+  <p class="section-eyebrow">Dlaczego MaxWatt</p>
+  <h2 class="section-title">Nie jesteśmy serwisem.<br>Jesteśmy tunersami.</h2>
+  <div class="why-grid">
+    <div class="why-card"><div class="why-icon">⚡</div><div class="why-title">VESC — otwarta platforma</div><p class="why-desc">Używamy kontrolerów VESC — open-source, sprawdzonych przez społeczność. Zero czarnych skrzynek, pełna kontrola parametrów.</p></div>
+    <div class="why-card"><div class="why-icon">📊</div><div class="why-title">Dane przed i po</div><p class="why-desc">Każdy tuning dokumentujemy w VESC Tool. Dostajesz wykresy mocy, prądu i prędkości — twardy dowód że to działa.</p></div>
+    <div class="why-card"><div class="why-icon">📄</div><div class="why-title">Umowa i transparentność</div><p class="why-desc">Wszystko na piśmie. Wiesz co robisz, co tracisz i co zyskujesz. Bez niespodzianek w rachunku.</p></div>
+    <div class="why-card"><div class="why-icon">🚐</div><div class="why-title">Mobilny serwis</div><p class="why-desc">Przyjeżdżamy do Ciebie. Laptop, narzędzia, wszystko w plecaku. Szamotuły, Poznań i okolice.</p></div>
+    <div class="why-card"><div class="why-icon">🏁</div><div class="why-title">Certyfikat MaxWatt</div><p class="why-desc">Po tuningu dostajesz certyfikat z parametrami przed i po. Dokument który potwierdza jakość roboty.</p></div>
+    <div class="why-card"><div class="why-icon">🔧</div><div class="why-title">Kompleksowo</div><p class="why-desc">Elektronika, mechanika, estetyka — wszystko w jednym miejscu. Nie musisz szukać kilku serwisów.</p></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <p class="section-eyebrow">FAQ</p>
+  <h2 class="section-title">Najczęstsze pytania</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Czy utracę gwarancję producenta po tuningu? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Tak — każda modyfikacja sprzętu unieważnia gwarancję producenta. Informujemy o tym przed każdym zleceniem i potwierdzamy to w umowie. To standardowa praktyka w tuningu.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Jakie modele hulajnóg obsługujecie? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Pracujemy z większością popularnych modeli — Xiaomi, Segway-Ninebot, Kukirin, Kaabo, Vsett i innymi. Skontaktuj się z nami podając model, a potwierdzimy możliwości tuningu.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Jak długo trwa tuning? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Diagnostyka i odblokowanie software — kilka godzin. Wymiana kontrolera VESC — zazwyczaj jeden dzień roboczy. Pełny tuning z upgrade baterii — 1-2 dni. Ustalamy termin przy umawianiu.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Czy możecie przyjechać do mnie? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Tak, oferujemy mobilny serwis z dojazdem do klienta. Obsługujemy Szamotuły, Poznań i okolice. Dojazd kosztuje +80 zł. Skontaktuj się i ustalmy szczegóły.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Co jeśli coś pójdzie nie tak podczas tuningu? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Każde zlecenie realizujemy na podstawie umowy. W razie uszkodzenia sprzętu z naszej winy pokrywamy koszt naprawy. Dlatego zawsze podpisujemy dokumenty przed rozpoczęciem pracy.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Czy tuning jest legalny? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Modyfikacje techniczne hulajnogi są legalne jako takie. Odpowiedzialność za użytkowanie zmodyfikowanego sprzętu zgodnie z lokalnym prawem drogowym spoczywa na właścicielu. Informujemy o tym każdego klienta przed zleceniem.</div>
+    </div>
+  </div>
+</section>
+
+<!-- KONTAKT -->
+<section id="kontakt" style="background:var(--dark);">
+  <p class="section-eyebrow">Kontakt</p>
+  <h2 class="section-title">Gotowy na więcej mocy?</h2>
+  <div class="contact-grid">
+    <div class="contact-info">
+      <div class="contact-item">
+        <div class="contact-icon">📞</div>
+        <div>
+          <div class="contact-label">Telefon</div>
+          <div class="contact-value"><a href="tel:663517069">663 517 069</a></div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📍</div>
+        <div>
+          <div class="contact-label">Lokalizacja</div>
+          <div class="contact-value">Szamotuły, woj. Wielkopolskie</div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">🚐</div>
+        <div>
+          <div class="contact-label">Mobilny dojazd</div>
+          <div class="contact-value">Szamotuły · Poznań · Okolice</div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">💬</div>
+        <div>
+          <div class="contact-label">Czas odpowiedzi</div>
+          <div class="contact-value">Do 24h</div>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📱</div>
+        <div>
+          <div class="contact-label">Social media</div>
+          <div class="social-links">
+            <a href="https://instagram.com/maxwatt.pl" class="social-link" target="_blank">📸 Instagram</a>
+            <a href="https://facebook.com/maxwatt.pl" class="social-link" target="_blank">👍 Facebook</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <form class="contact-form" onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Imię *</label>
+          <input class="form-input" type="text" placeholder="Twoje imię" required />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Telefon *</label>
+          <input class="form-input" type="tel" placeholder="000 000 000" required />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Model hulajnogi</label>
+        <input class="form-input" type="text" placeholder="np. Kukirin G2, Xiaomi Pro 2..." />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Pakiet / usługa</label>
+        <select class="form-select">
+          <option value="">Wybierz...</option>
+          <option>Pakiet Start – 349 zł</option>
+          <option>Pakiet Pro – 999 zł</option>
+          <option>Pakiet MaxWatt – 1799 zł</option>
+          <option>Usługa elektroniczna</option>
+          <option>Usługa mechaniczna</option>
+          <option>Serwis / naprawa</option>
+          <option>Nie wiem jeszcze</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Wiadomość</label>
+        <textarea class="form-textarea" placeholder="Opisz co chcesz osiągnąć lub jaki masz problem..."></textarea>
+      </div>
+      <div class="form-field">
+        <label style="display:flex;align-items:flex-start;gap:0.5rem;cursor:pointer;">
+          <input type="checkbox" required style="margin-top:3px;flex-shrink:0;" />
+          <span class="form-note">Akceptuję <a href="polityka-prywatnosci.html">Politykę prywatności</a> i wyrażam zgodę na przetwarzanie moich danych osobowych w celu odpowiedzi na zapytanie. *</span>
+        </label>
+      </div>
+      <button type="submit" class="form-submit">Wyślij zapytanie →</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-main">
+    <div>
+      <div class="footer-brand-name">Max<span>Watt</span></div>
+      <div class="footer-tagline">"Fabryka ustawia limity. My je zdejmujemy."</div>
+      <p class="footer-desc">Profesjonalny tuning elektrycznych hulajnóg — elektronika, mechanika, estetyka. Szamotuły i okolice Poznania.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Usługi</div>
+      <ul class="footer-links">
+        <li><a href="#uslugi">Elektronika i VESC</a></li>
+        <li><a href="#uslugi">Mechanika</a></li>
+        <li><a href="#uslugi">Serwis i naprawa</a></li>
+        <li><a href="#uslugi">Estetyka i LED</a></li>
+        <li><a href="#pakiety">Pakiety cenowe</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Informacje</div>
+      <ul class="footer-links">
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
+        <li><a href="polityka-prywatnosci.html">Polityka prywatności</a></li>
+        <li><a href="regulamin.html">Regulamin usług</a></li>
+        <li><a href="https://instagram.com/maxwatt.pl" target="_blank">Instagram</a></li>
+        <li><a href="https://facebook.com/maxwatt.pl" target="_blank">Facebook</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 MaxWatt · Mateusz Janus · Szamotuły · NIP: 6060050393</div>
+    <div class="footer-legal">
+      <a href="polityka-prywatnosci.html">Polityka prywatności</a>
+      <a href="regulamin.html">Regulamin</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  }
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+  function toggleFaq(btn) {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.form-submit');
+    btn.textContent = 'Wysłano! Odezwiemy się wkrótce ✓';
+    btn.style.background = '#1a7a1a';
+    btn.style.color = '#fff';
+    btn.disabled = true;
+  }
+  // Close mobile menu on outside click
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobileMenu');
+    const nav = document.querySelector('nav');
+    if (!nav.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
