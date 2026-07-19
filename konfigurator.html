@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konfigurator Tuningu – MaxWatt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,900&family=Barlow:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #080808; --dark: #111; --panel: #161616;
+      --border: #222; --border2: #2a2a2a;
+      --yellow: #FFD000; --yellow2: #FFA800;
+      --white: #F0F0F0; --gray: #777; --gray2: #444;
+      --green: #00E556; --red: #E5001A;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; min-height: 100vh; }
+
+    /* NAV */
+    nav { position: fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 5vw; height:60px; background:rgba(8,8,8,0.97); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+    .nav-logo { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.5rem; color:var(--white); text-decoration:none; }
+    .nav-logo span { color:var(--yellow); }
+    .nav-back { color:var(--gray); text-decoration:none; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; transition:color 0.2s; }
+    .nav-back:hover { color:var(--yellow); }
+
+    /* HERO */
+    .hero { padding: 100px 5vw 3rem; text-align: center; }
+    .hero-eyebrow { font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:1rem; }
+    .hero-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(2rem,7vw,4.5rem); text-transform:uppercase; line-height:0.95; margin-bottom:1rem; }
+    .hero-title em { font-style:italic; color:var(--yellow); }
+    .hero-sub { color:var(--gray); font-size:0.95rem; max-width:45ch; margin:0 auto 2.5rem; line-height:1.6; }
+
+    /* STEP INDICATOR */
+    .steps-wrap { padding:0 5vw 2rem; }
+    .steps { display:flex; align-items:center; max-width:560px; margin:0 auto; }
+    .step-dot { display:flex; flex-direction:column; align-items:center; gap:0.3rem; flex-shrink:0; }
+    .step-num { width:32px; height:32px; border-radius:50%; border:2px solid var(--border2); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.85rem; color:var(--gray); transition:all 0.3s; }
+    .step-dot.active .step-num { border-color:var(--yellow); background:var(--yellow); color:var(--black); }
+    .step-dot.done .step-num { border-color:var(--green); background:var(--green); color:var(--black); }
+    .step-label { font-family:'Share Tech Mono',monospace; font-size:0.55rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gray); white-space:nowrap; }
+    .step-dot.active .step-label { color:var(--yellow); }
+    .step-line { flex:1; height:1px; background:var(--border2); margin:0 0.5rem; margin-bottom:1rem; transition:background 0.3s; }
+    .step-line.done { background:var(--green); }
+
+    /* CONFIG PANEL */
+    .config { padding:0 5vw 6rem; }
+    .config-panel { max-width:860px; margin:0 auto; }
+    .config-step { display:none; }
+    .config-step.visible { display:block; animation:fadeUp 0.35s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    .section-q { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(1.4rem,4vw,2rem); text-transform:uppercase; margin-bottom:0.3rem; }
+    .section-sub { color:var(--gray); font-size:0.85rem; margin-bottom:1.5rem; }
+
+    /* BRAND GRID */
+    .brands-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:0.8rem; }
+    .brand-btn { background:var(--panel); border:1px solid var(--border2); color:var(--white); padding:1.3rem 0.8rem; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; letter-spacing:0.05em; text-transform:uppercase; transition:all 0.18s; display:flex; flex-direction:column; align-items:center; gap:0.5rem; border-radius:2px; }
+    .brand-btn:hover { border-color:var(--yellow); color:var(--yellow); transform:translateY(-2px); }
+    .brand-btn.selected { border-color:var(--yellow); background:#120f00; color:var(--yellow); }
+    .brand-icon { font-size:1.8rem; }
+
+    /* MODEL GRID */
+    .models-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:0.7rem; }
+    .model-btn { background:var(--panel); border:1px solid var(--border2); color:var(--white); padding:0.9rem 1rem; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.95rem; transition:all 0.18s; text-align:left; border-radius:2px; }
+    .model-btn:hover { border-color:var(--yellow); color:var(--yellow); }
+    .model-btn.selected { border-color:var(--yellow); background:#120f00; color:var(--yellow); }
+    .model-spec { font-family:'Barlow',sans-serif; font-size:0.72rem; color:var(--gray); margin-top:0.2rem; font-weight:400; }
+
+    /* GOAL GRID */
+    .goals-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0.8rem; }
+    .goal-btn { background:var(--panel); border:1px solid var(--border2); color:var(--white); padding:1.4rem; cursor:pointer; transition:all 0.18s; text-align:left; border-radius:2px; }
+    .goal-btn:hover { border-color:var(--yellow); transform:translateY(-2px); }
+    .goal-btn.selected { border-color:var(--yellow); background:#120f00; }
+    .goal-icon { font-size:1.8rem; margin-bottom:0.5rem; display:block; }
+    .goal-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; text-transform:uppercase; color:var(--white); }
+    .goal-desc { font-size:0.78rem; color:var(--gray); margin-top:0.2rem; line-height:1.5; }
+
+    /* RESULT */
+    .result-badge { display:inline-flex; align-items:center; gap:0.4rem; background:rgba(0,229,86,0.08); border:1px solid var(--green); color:var(--green); font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; padding:0.3rem 0.7rem; margin-bottom:0.8rem; }
+    .result-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(1.6rem,4vw,2.5rem); text-transform:uppercase; line-height:1; margin-bottom:2rem; }
+    .result-title span { color:var(--yellow); }
+
+    /* BEFORE/AFTER CARD */
+    .ba-card { border:1px solid var(--border); background:var(--panel); margin-bottom:1.5rem; overflow:hidden; }
+    .ba-header { display:grid; grid-template-columns:1fr 1fr; }
+    .ba-col-label { padding:0.6rem 1.2rem; font-family:'Share Tech Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; }
+    .ba-col-label.before-lbl { background:var(--dark); color:var(--gray); border-right:1px solid var(--border); }
+    .ba-col-label.after-lbl { background:#0d0c00; color:var(--yellow); text-align:right; }
+    .ba-stats { padding:1.5rem 1.2rem; display:flex; flex-direction:column; gap:1.2rem; }
+    .ba-stat { }
+    .ba-stat-name { font-family:'Share Tech Mono',monospace; font-size:0.6rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--gray); margin-bottom:0.5rem; }
+    .ba-stat-row { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:1rem; }
+    .ba-before-val { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.6rem; color:var(--gray2); text-decoration:line-through; }
+    .ba-arrow { text-align:center; color:var(--gray2); font-size:1rem; }
+    .ba-after-val { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:2rem; color:var(--gray); text-align:right; transition:color 0.4s, transform 0.4s; }
+    .ba-after-val.lit { color:var(--yellow); }
+    .ba-unit { font-family:'Barlow',sans-serif; font-size:0.75rem; color:var(--gray); font-weight:400; }
+    .ba-bar-wrap { margin-top:0.4rem; display:grid; grid-template-columns:1fr auto 1fr; gap:1rem; align-items:center; }
+    .ba-bar { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+    .ba-bar-fill { height:100%; border-radius:2px; transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1); }
+    .ba-bar-fill.before-fill { background:var(--gray2); }
+    .ba-bar-fill.after-fill { background:linear-gradient(90deg,var(--yellow),var(--yellow2)); }
+    .ba-delta { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--green); text-align:right; margin-top:0.2rem; }
+
+    /* SLIDER */
+    .slider-section { padding:1.2rem; border-top:1px solid var(--border); background:var(--dark); }
+    .slider-labels { display:flex; justify-content:space-between; font-family:'Share Tech Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); margin-bottom:0.5rem; }
+    input[type=range].pwr { -webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:linear-gradient(90deg,var(--yellow) var(--v,0%),var(--border2) var(--v,0%)); outline:none; cursor:pointer; }
+    input[type=range].pwr::-webkit-slider-thumb { -webkit-appearance:none; width:24px; height:24px; border-radius:50%; background:var(--yellow); border:3px solid var(--black); box-shadow:0 0 0 2px var(--yellow); cursor:pointer; transition:transform 0.15s; }
+    input[type=range].pwr::-webkit-slider-thumb:hover { transform:scale(1.2); }
+    .slider-status { text-align:center; margin-top:0.7rem; font-family:'Share Tech Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray); transition:color 0.3s; min-height:1.2em; }
+    .slider-status.unlocked { color:var(--green); }
+
+    /* PACKAGES */
+    .pkgs-row { display:grid; grid-template-columns:repeat(3,1fr); gap:0.8rem; margin-bottom:1.5rem; }
+    .pkg-mini { background:var(--dark); border:1px solid var(--border); padding:1.2rem; position:relative; transition:border-color 0.2s; cursor:pointer; border-radius:2px; }
+    .pkg-mini:hover { border-color:var(--yellow); }
+    .pkg-mini.hot { border-color:var(--yellow); background:#0d0c00; }
+    .pkg-mini-badge { position:absolute; top:0; right:0.8rem; background:var(--yellow); color:var(--black); font-family:'Share Tech Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.2rem 0.5rem; }
+    .pkg-mini-name { font-family:'Share Tech Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray); margin-bottom:0.3rem; }
+    .pkg-mini-price { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.8rem; color:var(--white); line-height:1; margin-bottom:0.2rem; }
+    .pkg-mini-price small { font-size:0.85rem; font-weight:400; color:var(--gray); }
+    .pkg-mini-effect { font-size:0.78rem; color:var(--yellow); font-weight:600; margin-bottom:0.6rem; }
+    .pkg-mini-feats { list-style:none; display:flex; flex-direction:column; gap:0.25rem; }
+    .pkg-mini-feats li { font-size:0.75rem; color:var(--gray); display:flex; gap:0.35rem; }
+    .pkg-mini-feats li::before { content:'✓'; color:var(--yellow); flex-shrink:0; }
+
+    /* CTA */
+    .cta-bar { display:grid; grid-template-columns:1fr auto; gap:1rem; align-items:center; background:var(--panel); border:1px solid var(--border); padding:1.3rem; margin-bottom:1rem; }
+    .cta-bar-text { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; text-transform:uppercase; }
+    .cta-bar-sub { font-size:0.78rem; color:var(--gray); margin-top:0.2rem; }
+    .btn-wa { display:inline-flex; align-items:center; gap:0.5rem; background:#25D366; color:#fff; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:0.05em; text-transform:uppercase; padding:0.8rem 1.4rem; border-radius:2px; text-decoration:none; white-space:nowrap; border:none; cursor:pointer; transition:opacity 0.2s; }
+    .btn-wa:hover { opacity:0.9; }
+    .btn-reset { background:none; border:1px solid var(--border); color:var(--gray); font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.55rem 1rem; cursor:pointer; transition:all 0.2s; border-radius:2px; }
+    .btn-reset:hover { border-color:var(--yellow); color:var(--yellow); }
+
+    @media(max-width:600px) {
+      .pkgs-row { grid-template-columns:1fr; }
+      .cta-bar { grid-template-columns:1fr; }
+      .brands-grid { grid-template-columns:repeat(2,1fr); }
+      .ba-stat-row { grid-template-columns:1fr auto 1fr; }
+    }
+    @media(prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Max<span>Watt</span></a>
+  <a href="index.html" class="nav-back">← Wróć do strony</a>
+</nav>
+
+<div class="hero">
+  <p class="hero-eyebrow">MaxWatt · Konfigurator tuningu</p>
+  <h1 class="hero-title">Co potrafi Twoja<br>hulajnoga <em>naprawdę?</em></h1>
+  <p class="hero-sub">3 kroki — wybierz markę, model i cel. Pokażemy Ci na żywo jaką różnicę robi tuning MaxWatt.</p>
+</div>
+
+<!-- STEPS -->
+<div class="steps-wrap">
+  <div class="steps">
+    <div class="step-dot active" id="dot-1"><div class="step-num">1</div><div class="step-label">Marka</div></div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-dot" id="dot-2"><div class="step-num">2</div><div class="step-label">Model</div></div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-dot" id="dot-3"><div class="step-num">3</div><div class="step-label">Cel</div></div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-dot" id="dot-4"><div class="step-num">4</div><div class="step-label">Wynik</div></div>
+  </div>
+</div>
+
+<div class="config">
+<div class="config-panel">
+
+<!-- STEP 1: BRAND -->
+<div class="config-step visible" id="step-1">
+  <h2 class="section-q">Jaka marka?</h2>
+  <p class="section-sub">Wybierz producenta hulajnogi</p>
+  <div class="brands-grid">
+    <button class="brand-btn" onclick="pickBrand('kukirin',this)"><span class="brand-icon">🛴</span>Kukirin</button>
+    <button class="brand-btn" onclick="pickBrand('xiaomi',this)"><span class="brand-icon">🛴</span>Xiaomi</button>
+    <button class="brand-btn" onclick="pickBrand('segway',this)"><span class="brand-icon">🛴</span>Segway</button>
+    <button class="brand-btn" onclick="pickBrand('kaabo',this)"><span class="brand-icon">🛴</span>Kaabo</button>
+    <button class="brand-btn" onclick="pickBrand('techlife',this)"><span class="brand-icon">🛴</span>Techlife</button>
+    <button class="brand-btn" onclick="pickBrand('kamikaze',this)"><span class="brand-icon">🛴</span>Kamikaze</button>
+    <button class="brand-btn" onclick="pickBrand('vsett',this)"><span class="brand-icon">🛴</span>Vsett</button>
+    <button class="brand-btn" onclick="pickBrand('inna',this)"><span class="brand-icon">❓</span>Inna</button>
+  </div>
+</div>
+
+<!-- STEP 2: MODEL -->
+<div class="config-step" id="step-2">
+  <h2 class="section-q">Który model?</h2>
+  <p class="section-sub">Wybierz swój model</p>
+  <div class="models-grid" id="models-grid"></div>
+</div>
+
+<!-- STEP 3: GOAL -->
+<div class="config-step" id="step-3">
+  <h2 class="section-q">Co chcesz osiągnąć?</h2>
+  <p class="section-sub">Możesz wybrać więcej niż jeden cel</p>
+  <div class="goals-grid">
+    <button class="goal-btn" onclick="toggleGoal('speed',this)">
+      <span class="goal-icon">🚀</span>
+      <div class="goal-title">Jedź szybciej</div>
+      <div class="goal-desc">Wyższa prędkość maksymalna</div>
+    </button>
+    <button class="goal-btn" onclick="toggleGoal('power',this)">
+      <span class="goal-icon">⚡</span>
+      <div class="goal-title">Więcej mocy</div>
+      <div class="goal-desc">Lepsze przyspieszenie i podjazdy</div>
+    </button>
+    <button class="goal-btn" onclick="toggleGoal('range',this)">
+      <span class="goal-icon">🔋</span>
+      <div class="goal-title">Większy zasięg</div>
+      <div class="goal-desc">Więcej km na jednym ładowaniu</div>
+    </button>
+    <button class="goal-btn" onclick="toggleGoal('repair',this)">
+      <span class="goal-icon">🔧</span>
+      <div class="goal-title">Naprawa / serwis</div>
+      <div class="goal-desc">Coś nie działa jak powinno</div>
+    </button>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <button class="btn-wa" style="background:var(--yellow);color:var(--black);" onclick="goToResult()" id="btn-next" disabled>
+      Pokaż wyniki →
+    </button>
+  </div>
+</div>
+
+<!-- STEP 4: RESULT -->
+<div class="config-step" id="step-4">
+  <div class="result-badge">✓ Znamy Twoją hulajnogę</div>
+  <h2 class="result-title">Oto co możemy zrobić<br>z <span id="res-model">Twoją hulajnogą</span></h2>
+
+  <div class="ba-card">
+    <div class="ba-header">
+      <div class="ba-col-label before-lbl">⬛ PRZED — fabryka</div>
+      <div class="ba-col-label after-lbl">MAXWATT — po tuningu ⚡</div>
+    </div>
+    <div class="ba-stats" id="ba-stats"></div>
+    <div class="slider-section">
+      <div class="slider-labels"><span>Fabryka</span><span>MaxWatt</span></div>
+      <input type="range" class="pwr" id="pwr-slider" min="0" max="100" value="0" oninput="moveSlider(this.value)" />
+      <div class="slider-status" id="slider-status">Przeciągnij suwak żeby zobaczyć różnicę →</div>
+    </div>
+  </div>
+
+  <div class="pkgs-row" id="pkgs-row"></div>
+
+  <div class="cta-bar">
+    <div>
+      <div class="cta-bar-text">Napisz do nas — wycenimy Twój tuning</div>
+      <div class="cta-bar-sub">Odpowiadamy do 24h · Szamotuły & Poznań · Mobilny dojazd +80 zł</div>
+    </div>
+    <button class="btn-wa" onclick="sendWA()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </button>
+  </div>
+  <button class="btn-reset" onclick="reset()">← Skonfiguruj inną hulajnogę</button>
+</div>
+
+</div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const MODELS = {
+  kukirin: [
+    { id:'g2',       name:'G2',           spec:'800W · 48V · do 45 km/h' },
+    { id:'g2max',    name:'G2 Max',        spec:'1000W · 48V · do 50 km/h' },
+    { id:'g2pro',    name:'G2 Pro',        spec:'1000W · 52V · do 55 km/h' },
+    { id:'g2master', name:'G2 Master',     spec:'Dual 1000W · 52V · do 60 km/h' },
+    { id:'g2ultra',  name:'G2 Ultra',      spec:'Dual 800W · 52V · do 55 km/h' },
+    { id:'g3',       name:'G3',            spec:'1500W · 60V · do 60 km/h' },
+    { id:'g4',       name:'G4',            spec:'2000W · 60V · do 70 km/h' },
+    { id:'m5pro',    name:'M5 Pro',        spec:'500W · 48V · do 35 km/h' },
+    { id:'s1',       name:'S1 / S3',       spec:'350W · 36V · do 25 km/h' },
+  ],
+  xiaomi: [
+    { id:'mipro2',   name:'Mi Pro 2',      spec:'600W · 36V · do 25 km/h' },
+    { id:'mi4pro',   name:'Scooter 4 Pro', spec:'700W · 36V · do 25 km/h' },
+    { id:'mi5max',   name:'Scooter 5 Max', spec:'800W · 48V · do 35 km/h' },
+    { id:'mi4ultra', name:'Scooter 4 Ultra',spec:'1000W · 48V · do 45 km/h' },
+  ],
+  segway: [
+    { id:'maxg2',    name:'Max G2',        spec:'900W · 48V · do 25 km/h' },
+    { id:'maxg3',    name:'Max G3',        spec:'1000W · 48V · do 25 km/h' },
+    { id:'f2pro',    name:'F2 Pro',        spec:'700W · 36V · do 25 km/h' },
+    { id:'gt2',      name:'GT2',           spec:'2000W · 60V · do 70 km/h' },
+  ],
+  kaabo: [
+    { id:'mantis8',  name:'Mantis 8',      spec:'1000W · 52V · do 50 km/h' },
+    { id:'mantis10', name:'Mantis 10',     spec:'Dual 1000W · 52V · do 65 km/h' },
+    { id:'wolf',     name:'Wolf King',     spec:'Dual 1500W · 60V · do 80 km/h' },
+  ],
+  techlife: [
+    { id:'x52',      name:'X5 2.0',        spec:'500W · 48V · do 35 km/h' },
+    { id:'x83',      name:'X8 3.0',        spec:'Dual 1000W · 52V · do 55 km/h' },
+    { id:'q5rs',     name:'Q5 RS 2.0',     spec:'800W · 48V · do 45 km/h' },
+  ],
+  kamikaze: [
+    { id:'k1plus',   name:'K1 Plus',       spec:'1000W · 48V · do 45 km/h' },
+    { id:'k2',       name:'K2',            spec:'1500W · 52V · do 55 km/h' },
+    { id:'k2pro',    name:'K2 Pro',        spec:'Dual 1000W · 52V · do 60 km/h' },
+  ],
+  vsett: [
+    { id:'vsett10',  name:'Vsett 10+',     spec:'1000W · 52V · do 55 km/h' },
+    { id:'vsett11',  name:'Vsett 11+',     spec:'Dual 1200W · 60V · do 70 km/h' },
+  ],
+  inna: [
+    { id:'inna48',   name:'Hulajnoga 48V', spec:'Napięcie 48V · różna moc' },
+    { id:'inna52',   name:'Hulajnoga 52V', spec:'Napięcie 52V · różna moc' },
+    { id:'inna60',   name:'Hulajnoga 60V', spec:'Napięcie 60V · różna moc' },
+    { id:'innaX',    name:'Wyślij zdjęcie', spec:'Dobierzemy opcje za Ciebie' },
+  ],
+};
+
+// Stats: [before_val, after_val, unit, label, bar_before_pct, bar_after_pct]
+const STATS = {
+  // KUKIRIN
+  g2: {
+    speed:  [ {l:'Prędkość maks.',  b:45,   a:68,   u:'km/h', bp:40, ap:85},
+              {l:'Prąd silnika',    b:20,   a:50,   u:'A',    bp:25, ap:80},
+              {l:'Moc szczytowa',   b:800,  a:1800, u:'W',    bp:30, ap:88} ],
+    power:  [ {l:'Prędkość maks.',  b:45,   a:62,   u:'km/h', bp:40, ap:72},
+              {l:'Prąd silnika',    b:20,   a:55,   u:'A',    bp:25, ap:90},
+              {l:'Moc szczytowa',   b:800,  a:2000, u:'W',    bp:30, ap:95} ],
+    range:  [ {l:'Zasięg',          b:35,   a:65,   u:'km',   bp:35, ap:80},
+              {l:'Pojemność baterii',b:15,  a:20,   u:'Ah',   bp:45, ap:80},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:80} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  g2max: {
+    speed:  [ {l:'Prędkość maks.',  b:50,   a:72,   u:'km/h', bp:42, ap:88},
+              {l:'Prąd silnika',    b:22,   a:55,   u:'A',    bp:28, ap:85},
+              {l:'Moc szczytowa',   b:1000, a:2000, u:'W',    bp:35, ap:90} ],
+    power:  [ {l:'Prędkość maks.',  b:50,   a:65,   u:'km/h', bp:42, ap:78},
+              {l:'Prąd silnika',    b:22,   a:60,   u:'A',    bp:28, ap:92},
+              {l:'Moc szczytowa',   b:1000, a:2200, u:'W',    bp:35, ap:95} ],
+    range:  [ {l:'Zasięg',          b:40,   a:75,   u:'km',   bp:38, ap:82},
+              {l:'Pojemność baterii',b:15,  a:20,   u:'Ah',   bp:45, ap:80},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:80} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  g4: {
+    speed:  [ {l:'Prędkość maks.',  b:70,   a:78,   u:'km/h', bp:72, ap:92},
+              {l:'Prąd silnika',    b:40,   a:70,   u:'A',    bp:50, ap:88},
+              {l:'Moc szczytowa',   b:2000, a:3200, u:'W',    bp:55, ap:95} ],
+    power:  [ {l:'Prędkość maks.',  b:70,   a:75,   u:'km/h', bp:72, ap:88},
+              {l:'Prąd silnika',    b:40,   a:80,   u:'A',    bp:50, ap:95},
+              {l:'Moc szczytowa',   b:2000, a:3500, u:'W',    bp:55, ap:98} ],
+    range:  [ {l:'Zasięg',          b:70,   a:110,  u:'km',   bp:60, ap:90},
+              {l:'Pojemność baterii',b:20,  a:28,   u:'Ah',   bp:50, ap:82},
+              {l:'Napięcie',        b:60,   a:72,   u:'V',    bp:65, ap:88} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  mipro2: {
+    speed:  [ {l:'Prędkość maks.',  b:25,   a:42,   u:'km/h', bp:20, ap:62},
+              {l:'Prąd silnika',    b:14,   a:30,   u:'A',    bp:18, ap:65},
+              {l:'Moc szczytowa',   b:600,  a:1100, u:'W',    bp:25, ap:78} ],
+    power:  [ {l:'Prędkość maks.',  b:25,   a:38,   u:'km/h', bp:20, ap:55},
+              {l:'Prąd silnika',    b:14,   a:35,   u:'A',    bp:18, ap:72},
+              {l:'Moc szczytowa',   b:600,  a:1200, u:'W',    bp:25, ap:82} ],
+    range:  [ {l:'Zasięg',          b:45,   a:80,   u:'km',   bp:42, ap:85},
+              {l:'Pojemność baterii',b:12.8,a:18,   u:'Ah',   bp:40, ap:75},
+              {l:'Napięcie',        b:36,   a:48,   u:'V',    bp:38, ap:68} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  maxg2: {
+    speed:  [ {l:'Prędkość maks.',  b:25,   a:48,   u:'km/h', bp:20, ap:68},
+              {l:'Prąd silnika',    b:18,   a:40,   u:'A',    bp:22, ap:72},
+              {l:'Moc szczytowa',   b:900,  a:1600, u:'W',    bp:32, ap:85} ],
+    power:  [ {l:'Prędkość maks.',  b:25,   a:42,   u:'km/h', bp:20, ap:60},
+              {l:'Prąd silnika',    b:18,   a:45,   u:'A',    bp:22, ap:80},
+              {l:'Moc szczytowa',   b:900,  a:1800, u:'W',    bp:32, ap:90} ],
+    range:  [ {l:'Zasięg',          b:70,   a:120,  u:'km',   bp:60, ap:92},
+              {l:'Pojemność baterii',b:15,  a:21,   u:'Ah',   bp:45, ap:78},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  k1plus: {
+    speed:  [ {l:'Prędkość maks.',  b:45,   a:65,   u:'km/h', bp:40, ap:82},
+              {l:'Prąd silnika',    b:20,   a:48,   u:'A',    bp:25, ap:80},
+              {l:'Moc szczytowa',   b:1000, a:1900, u:'W',    bp:35, ap:88} ],
+    power:  [ {l:'Prędkość maks.',  b:45,   a:60,   u:'km/h', bp:40, ap:75},
+              {l:'Prąd silnika',    b:20,   a:52,   u:'A',    bp:25, ap:85},
+              {l:'Moc szczytowa',   b:1000, a:2100, u:'W',    bp:35, ap:92} ],
+    range:  [ {l:'Zasięg',          b:50,   a:90,   u:'km',   bp:45, ap:85},
+              {l:'Pojemność baterii',b:15,  a:20,   u:'Ah',   bp:45, ap:78},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // KAMIKAZE
+  k2: {
+    speed:  [ {l:'Prędkość maks.',  b:55,   a:75,   u:'km/h', bp:48, ap:88},
+              {l:'Prąd silnika',    b:25,   a:55,   u:'A',    bp:30, ap:85},
+              {l:'Moc szczytowa',   b:1500, a:2800, u:'W',    bp:40, ap:92} ],
+    power:  [ {l:'Prędkość maks.',  b:55,   a:68,   u:'km/h', bp:48, ap:78},
+              {l:'Prąd silnika',    b:25,   a:60,   u:'A',    bp:30, ap:90},
+              {l:'Moc szczytowa',   b:1500, a:3000, u:'W',    bp:40, ap:95} ],
+    range:  [ {l:'Zasięg',          b:55,   a:95,   u:'km',   bp:48, ap:88},
+              {l:'Pojemność baterii',b:18,  a:24,   u:'Ah',   bp:50, ap:80},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  k2pro: {
+    speed:  [ {l:'Prędkość maks.',  b:60,   a:78,   u:'km/h', bp:55, ap:90},
+              {l:'Prąd silnika',    b:30,   a:65,   u:'A',    bp:35, ap:88},
+              {l:'Moc szczytowa',   b:2000, a:3500, u:'W',    bp:50, ap:95} ],
+    power:  [ {l:'Prędkość maks.',  b:60,   a:72,   u:'km/h', bp:55, ap:82},
+              {l:'Prąd silnika',    b:30,   a:70,   u:'A',    bp:35, ap:92},
+              {l:'Moc szczytowa',   b:2000, a:3800, u:'W',    bp:50, ap:98} ],
+    range:  [ {l:'Zasięg',          b:60,   a:100,  u:'km',   bp:52, ap:90},
+              {l:'Pojemność baterii',b:20,  a:28,   u:'Ah',   bp:55, ap:85},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // XIAOMI pozostałe
+  mi4pro: {
+    speed:  [ {l:'Prędkość maks.',  b:25,   a:40,   u:'km/h', bp:20, ap:58},
+              {l:'Prąd silnika',    b:15,   a:32,   u:'A',    bp:18, ap:65},
+              {l:'Moc szczytowa',   b:700,  a:1200, u:'W',    bp:25, ap:80} ],
+    power:  [ {l:'Prędkość maks.',  b:25,   a:36,   u:'km/h', bp:20, ap:52},
+              {l:'Prąd silnika',    b:15,   a:36,   u:'A',    bp:18, ap:72},
+              {l:'Moc szczytowa',   b:700,  a:1300, u:'W',    bp:25, ap:84} ],
+    range:  [ {l:'Zasięg',          b:35,   a:65,   u:'km',   bp:32, ap:78},
+              {l:'Pojemność baterii',b:10,  a:15,   u:'Ah',   bp:35, ap:72},
+              {l:'Napięcie',        b:36,   a:48,   u:'V',    bp:38, ap:68} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  mi5max: {
+    speed:  [ {l:'Prędkość maks.',  b:35,   a:58,   u:'km/h', bp:30, ap:75},
+              {l:'Prąd silnika',    b:18,   a:42,   u:'A',    bp:22, ap:75},
+              {l:'Moc szczytowa',   b:800,  a:1600, u:'W',    bp:28, ap:85} ],
+    power:  [ {l:'Prędkość maks.',  b:35,   a:50,   u:'km/h', bp:30, ap:65},
+              {l:'Prąd silnika',    b:18,   a:48,   u:'A',    bp:22, ap:82},
+              {l:'Moc szczytowa',   b:800,  a:1800, u:'W',    bp:28, ap:90} ],
+    range:  [ {l:'Zasięg',          b:45,   a:80,   u:'km',   bp:40, ap:82},
+              {l:'Pojemność baterii',b:14,  a:20,   u:'Ah',   bp:42, ap:78},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  mi4ultra: {
+    speed:  [ {l:'Prędkość maks.',  b:45,   a:65,   u:'km/h', bp:40, ap:82},
+              {l:'Prąd silnika',    b:22,   a:50,   u:'A',    bp:28, ap:82},
+              {l:'Moc szczytowa',   b:1000, a:1900, u:'W',    bp:35, ap:88} ],
+    power:  [ {l:'Prędkość maks.',  b:45,   a:58,   u:'km/h', bp:40, ap:72},
+              {l:'Prąd silnika',    b:22,   a:55,   u:'A',    bp:28, ap:88},
+              {l:'Moc szczytowa',   b:1000, a:2100, u:'W',    bp:35, ap:92} ],
+    range:  [ {l:'Zasięg',          b:50,   a:88,   u:'km',   bp:45, ap:86},
+              {l:'Pojemność baterii',b:15,  a:21,   u:'Ah',   bp:45, ap:80},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // KUKIRIN pozostałe
+  g2pro: {
+    speed:  [ {l:'Prędkość maks.',  b:55,   a:75,   u:'km/h', bp:48, ap:88},
+              {l:'Prąd silnika',    b:22,   a:55,   u:'A',    bp:28, ap:85},
+              {l:'Moc szczytowa',   b:1000, a:2100, u:'W',    bp:35, ap:92} ],
+    power:  [ {l:'Prędkość maks.',  b:55,   a:68,   u:'km/h', bp:48, ap:78},
+              {l:'Prąd silnika',    b:22,   a:60,   u:'A',    bp:28, ap:90},
+              {l:'Moc szczytowa',   b:1000, a:2300, u:'W',    bp:35, ap:95} ],
+    range:  [ {l:'Zasięg',          b:50,   a:90,   u:'km',   bp:45, ap:88},
+              {l:'Pojemność baterii',b:18,  a:24,   u:'Ah',   bp:50, ap:82},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  g2master: {
+    speed:  [ {l:'Prędkość maks.',  b:60,   a:78,   u:'km/h', bp:55, ap:90},
+              {l:'Prąd silnika',    b:40,   a:80,   u:'A',    bp:45, ap:90},
+              {l:'Moc szczytowa',   b:2000, a:3800, u:'W',    bp:50, ap:95} ],
+    power:  [ {l:'Prędkość maks.',  b:60,   a:72,   u:'km/h', bp:55, ap:82},
+              {l:'Prąd silnika',    b:40,   a:90,   u:'A',    bp:45, ap:95},
+              {l:'Moc szczytowa',   b:2000, a:4000, u:'W',    bp:50, ap:98} ],
+    range:  [ {l:'Zasięg',          b:60,   a:100,  u:'km',   bp:52, ap:90},
+              {l:'Pojemność baterii',b:20,  a:28,   u:'Ah',   bp:55, ap:85},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  g2ultra: {
+    speed:  [ {l:'Prędkość maks.',  b:55,   a:74,   u:'km/h', bp:50, ap:88},
+              {l:'Prąd silnika',    b:35,   a:70,   u:'A',    bp:40, ap:88},
+              {l:'Moc szczytowa',   b:1600, a:3200, u:'W',    bp:45, ap:92} ],
+    power:  [ {l:'Prędkość maks.',  b:55,   a:68,   u:'km/h', bp:50, ap:78},
+              {l:'Prąd silnika',    b:35,   a:75,   u:'A',    bp:40, ap:92},
+              {l:'Moc szczytowa',   b:1600, a:3400, u:'W',    bp:45, ap:95} ],
+    range:  [ {l:'Zasięg',          b:55,   a:95,   u:'km',   bp:48, ap:88},
+              {l:'Pojemność baterii',b:18,  a:24,   u:'Ah',   bp:50, ap:82},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  g3: {
+    speed:  [ {l:'Prędkość maks.',  b:60,   a:76,   u:'km/h', bp:55, ap:88},
+              {l:'Prąd silnika',    b:30,   a:65,   u:'A',    bp:35, ap:88},
+              {l:'Moc szczytowa',   b:1500, a:3000, u:'W',    bp:42, ap:92} ],
+    power:  [ {l:'Prędkość maks.',  b:60,   a:70,   u:'km/h', bp:55, ap:80},
+              {l:'Prąd silnika',    b:30,   a:70,   u:'A',    bp:35, ap:92},
+              {l:'Moc szczytowa',   b:1500, a:3200, u:'W',    bp:42, ap:95} ],
+    range:  [ {l:'Zasięg',          b:60,   a:100,  u:'km',   bp:52, ap:90},
+              {l:'Pojemność baterii',b:20,  a:28,   u:'Ah',   bp:55, ap:85},
+              {l:'Napięcie',        b:60,   a:72,   u:'V',    bp:68, ap:88} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  m5pro: {
+    speed:  [ {l:'Prędkość maks.',  b:35,   a:52,   u:'km/h', bp:30, ap:70},
+              {l:'Prąd silnika',    b:14,   a:30,   u:'A',    bp:18, ap:65},
+              {l:'Moc szczytowa',   b:500,  a:1100, u:'W',    bp:22, ap:75} ],
+    power:  [ {l:'Prędkość maks.',  b:35,   a:46,   u:'km/h', bp:30, ap:60},
+              {l:'Prąd silnika',    b:14,   a:34,   u:'A',    bp:18, ap:70},
+              {l:'Moc szczytowa',   b:500,  a:1200, u:'W',    bp:22, ap:78} ],
+    range:  [ {l:'Zasięg',          b:40,   a:72,   u:'km',   bp:36, ap:80},
+              {l:'Pojemność baterii',b:15,  a:20,   u:'Ah',   bp:45, ap:78},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  s1: {
+    speed:  [ {l:'Prędkość maks.',  b:25,   a:38,   u:'km/h', bp:20, ap:55},
+              {l:'Prąd silnika',    b:10,   a:22,   u:'A',    bp:14, ap:55},
+              {l:'Moc szczytowa',   b:350,  a:750,  u:'W',    bp:18, ap:65} ],
+    power:  [ {l:'Prędkość maks.',  b:25,   a:33,   u:'km/h', bp:20, ap:48},
+              {l:'Prąd silnika',    b:10,   a:25,   u:'A',    bp:14, ap:60},
+              {l:'Moc szczytowa',   b:350,  a:800,  u:'W',    bp:18, ap:68} ],
+    range:  [ {l:'Zasięg',          b:25,   a:45,   u:'km',   bp:25, ap:62},
+              {l:'Pojemność baterii',b:7.5, a:12,   u:'Ah',   bp:30, ap:62},
+              {l:'Napięcie',        b:36,   a:48,   u:'V',    bp:38, ap:68} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // SEGWAY pozostałe
+  maxg3: {
+    speed:  [ {l:'Prędkość maks.',  b:25,   a:50,   u:'km/h', bp:20, ap:70},
+              {l:'Prąd silnika',    b:20,   a:44,   u:'A',    bp:24, ap:75},
+              {l:'Moc szczytowa',   b:1000, a:1800, u:'W',    bp:35, ap:88} ],
+    power:  [ {l:'Prędkość maks.',  b:25,   a:44,   u:'km/h', bp:20, ap:62},
+              {l:'Prąd silnika',    b:20,   a:48,   u:'A',    bp:24, ap:82},
+              {l:'Moc szczytowa',   b:1000, a:2000, u:'W',    bp:35, ap:92} ],
+    range:  [ {l:'Zasięg',          b:75,   a:125,  u:'km',   bp:62, ap:95},
+              {l:'Pojemność baterii',b:16,  a:22,   u:'Ah',   bp:48, ap:80},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  f2pro: {
+    speed:  [ {l:'Prędkość maks.',  b:25,   a:40,   u:'km/h', bp:20, ap:58},
+              {l:'Prąd silnika',    b:15,   a:32,   u:'A',    bp:18, ap:65},
+              {l:'Moc szczytowa',   b:700,  a:1200, u:'W',    bp:25, ap:80} ],
+    power:  [ {l:'Prędkość maks.',  b:25,   a:35,   u:'km/h', bp:20, ap:50},
+              {l:'Prąd silnika',    b:15,   a:36,   u:'A',    bp:18, ap:72},
+              {l:'Moc szczytowa',   b:700,  a:1300, u:'W',    bp:25, ap:82} ],
+    range:  [ {l:'Zasięg',          b:55,   a:95,   u:'km',   bp:48, ap:88},
+              {l:'Pojemność baterii',b:14,  a:20,   u:'Ah',   bp:42, ap:78},
+              {l:'Napięcie',        b:36,   a:48,   u:'V',    bp:38, ap:68} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  gt2: {
+    speed:  [ {l:'Prędkość maks.',  b:70,   a:80,   u:'km/h', bp:72, ap:92},
+              {l:'Prąd silnika',    b:45,   a:80,   u:'A',    bp:52, ap:90},
+              {l:'Moc szczytowa',   b:2000, a:3500, u:'W',    bp:55, ap:95} ],
+    power:  [ {l:'Prędkość maks.',  b:70,   a:76,   u:'km/h', bp:72, ap:85},
+              {l:'Prąd silnika',    b:45,   a:90,   u:'A',    bp:52, ap:95},
+              {l:'Moc szczytowa',   b:2000, a:3800, u:'W',    bp:55, ap:98} ],
+    range:  [ {l:'Zasięg',          b:65,   a:110,  u:'km',   bp:55, ap:90},
+              {l:'Pojemność baterii',b:21,  a:30,   u:'Ah',   bp:55, ap:88},
+              {l:'Napięcie',        b:60,   a:72,   u:'V',    bp:68, ap:88} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // KAABO
+  mantis8: {
+    speed:  [ {l:'Prędkość maks.',  b:50,   a:68,   u:'km/h', bp:45, ap:85},
+              {l:'Prąd silnika',    b:22,   a:50,   u:'A',    bp:28, ap:82},
+              {l:'Moc szczytowa',   b:1000, a:2000, u:'W',    bp:35, ap:90} ],
+    power:  [ {l:'Prędkość maks.',  b:50,   a:62,   u:'km/h', bp:45, ap:75},
+              {l:'Prąd silnika',    b:22,   a:55,   u:'A',    bp:28, ap:88},
+              {l:'Moc szczytowa',   b:1000, a:2200, u:'W',    bp:35, ap:92} ],
+    range:  [ {l:'Zasięg',          b:50,   a:88,   u:'km',   bp:45, ap:86},
+              {l:'Pojemność baterii',b:18,  a:24,   u:'Ah',   bp:50, ap:82},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  mantis10: {
+    speed:  [ {l:'Prędkość maks.',  b:65,   a:80,   u:'km/h', bp:60, ap:90},
+              {l:'Prąd silnika',    b:40,   a:75,   u:'A',    bp:45, ap:88},
+              {l:'Moc szczytowa',   b:2000, a:3500, u:'W',    bp:50, ap:95} ],
+    power:  [ {l:'Prędkość maks.',  b:65,   a:75,   u:'km/h', bp:60, ap:82},
+              {l:'Prąd silnika',    b:40,   a:80,   u:'A',    bp:45, ap:92},
+              {l:'Moc szczytowa',   b:2000, a:3800, u:'W',    bp:50, ap:98} ],
+    range:  [ {l:'Zasięg',          b:60,   a:100,  u:'km',   bp:52, ap:90},
+              {l:'Pojemność baterii',b:21,  a:28,   u:'Ah',   bp:55, ap:85},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  wolf: {
+    speed:  [ {l:'Prędkość maks.',  b:80,   a:90,   u:'km/h', bp:80, ap:95},
+              {l:'Prąd silnika',    b:50,   a:90,   u:'A',    bp:55, ap:92},
+              {l:'Moc szczytowa',   b:3000, a:5000, u:'W',    bp:60, ap:98} ],
+    power:  [ {l:'Prędkość maks.',  b:80,   a:86,   u:'km/h', bp:80, ap:88},
+              {l:'Prąd silnika',    b:50,   a:100,  u:'A',    bp:55, ap:98},
+              {l:'Moc szczytowa',   b:3000, a:5500, u:'W',    bp:60, ap:99} ],
+    range:  [ {l:'Zasięg',          b:80,   a:130,  u:'km',   bp:70, ap:95},
+              {l:'Pojemność baterii',b:28,  a:38,   u:'Ah',   bp:60, ap:90},
+              {l:'Napięcie',        b:60,   a:72,   u:'V',    bp:68, ap:88} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // TECHLIFE
+  x52: {
+    speed:  [ {l:'Prędkość maks.',  b:35,   a:52,   u:'km/h', bp:30, ap:70},
+              {l:'Prąd silnika',    b:14,   a:30,   u:'A',    bp:18, ap:65},
+              {l:'Moc szczytowa',   b:500,  a:1100, u:'W',    bp:22, ap:76} ],
+    power:  [ {l:'Prędkość maks.',  b:35,   a:46,   u:'km/h', bp:30, ap:60},
+              {l:'Prąd silnika',    b:14,   a:34,   u:'A',    bp:18, ap:70},
+              {l:'Moc szczytowa',   b:500,  a:1200, u:'W',    bp:22, ap:80} ],
+    range:  [ {l:'Zasięg',          b:40,   a:72,   u:'km',   bp:36, ap:80},
+              {l:'Pojemność baterii',b:13,  a:18,   u:'Ah',   bp:40, ap:75},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  x83: {
+    speed:  [ {l:'Prędkość maks.',  b:55,   a:74,   u:'km/h', bp:50, ap:88},
+              {l:'Prąd silnika',    b:35,   a:70,   u:'A',    bp:40, ap:88},
+              {l:'Moc szczytowa',   b:2000, a:3500, u:'W',    bp:50, ap:95} ],
+    power:  [ {l:'Prędkość maks.',  b:55,   a:68,   u:'km/h', bp:50, ap:78},
+              {l:'Prąd silnika',    b:35,   a:75,   u:'A',    bp:40, ap:92},
+              {l:'Moc szczytowa',   b:2000, a:3800, u:'W',    bp:50, ap:98} ],
+    range:  [ {l:'Zasięg',          b:60,   a:100,  u:'km',   bp:52, ap:90},
+              {l:'Pojemność baterii',b:20,  a:28,   u:'Ah',   bp:55, ap:85},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  q5rs: {
+    speed:  [ {l:'Prędkość maks.',  b:45,   a:65,   u:'km/h', bp:40, ap:82},
+              {l:'Prąd silnika',    b:20,   a:48,   u:'A',    bp:25, ap:80},
+              {l:'Moc szczytowa',   b:800,  a:1800, u:'W',    bp:28, ap:88} ],
+    power:  [ {l:'Prędkość maks.',  b:45,   a:58,   u:'km/h', bp:40, ap:72},
+              {l:'Prąd silnika',    b:20,   a:52,   u:'A',    bp:25, ap:85},
+              {l:'Moc szczytowa',   b:800,  a:2000, u:'W',    bp:28, ap:92} ],
+    range:  [ {l:'Zasięg',          b:50,   a:88,   u:'km',   bp:45, ap:86},
+              {l:'Pojemność baterii',b:15,  a:21,   u:'Ah',   bp:45, ap:80},
+              {l:'Napięcie',        b:48,   a:52,   u:'V',    bp:60, ap:78} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  // VSETT
+  vsett10: {
+    speed:  [ {l:'Prędkość maks.',  b:55,   a:72,   u:'km/h', bp:50, ap:86},
+              {l:'Prąd silnika',    b:25,   a:55,   u:'A',    bp:30, ap:85},
+              {l:'Moc szczytowa',   b:1000, a:2100, u:'W',    bp:35, ap:90} ],
+    power:  [ {l:'Prędkość maks.',  b:55,   a:66,   u:'km/h', bp:50, ap:76},
+              {l:'Prąd silnika',    b:25,   a:60,   u:'A',    bp:30, ap:90},
+              {l:'Moc szczytowa',   b:1000, a:2300, u:'W',    bp:35, ap:94} ],
+    range:  [ {l:'Zasięg',          b:60,   a:100,  u:'km',   bp:52, ap:90},
+              {l:'Pojemność baterii',b:21,  a:28,   u:'Ah',   bp:55, ap:85},
+              {l:'Napięcie',        b:52,   a:60,   u:'V',    bp:65, ap:85} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+  vsett11: {
+    speed:  [ {l:'Prędkość maks.',  b:70,   a:82,   u:'km/h', bp:68, ap:92},
+              {l:'Prąd silnika',    b:45,   a:80,   u:'A',    bp:50, ap:90},
+              {l:'Moc szczytowa',   b:2400, a:4000, u:'W',    bp:55, ap:96} ],
+    power:  [ {l:'Prędkość maks.',  b:70,   a:78,   u:'km/h', bp:68, ap:85},
+              {l:'Prąd silnika',    b:45,   a:90,   u:'A',    bp:50, ap:95},
+              {l:'Moc szczytowa',   b:2400, a:4500, u:'W',    bp:55, ap:98} ],
+    range:  [ {l:'Zasięg',          b:70,   a:115,  u:'km',   bp:60, ap:92},
+              {l:'Pojemność baterii',b:24,  a:32,   u:'Ah',   bp:58, ap:88},
+              {l:'Napięcie',        b:60,   a:72,   u:'V',    bp:68, ap:88} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  },
+};
+
+// Default fallback for unknown models
+function getDefaultStats(goal) {
+  const map = {
+    speed:  [ {l:'Prędkość maks.',  b:'?',  a:'+30-50%', u:'km/h', bp:30, ap:75, txt:['Fabryczna','Po tuningu']},
+              {l:'Prąd silnika',    b:'?',  a:'+100%',   u:'A',    bp:25, ap:80, txt:['Fabryczny','2× więcej']},
+              {l:'Moc szczytowa',   b:'?',  a:'+80-120%',u:'W',    bp:25, ap:85, txt:['Fabryczna','Po tuningu']} ],
+    power:  [ {l:'Prędkość maks.',  b:'?',  a:'+20-35%', u:'km/h', bp:30, ap:65, txt:['Fabryczna','Po tuningu']},
+              {l:'Prąd silnika',    b:'?',  a:'+150%',   u:'A',    bp:25, ap:90, txt:['Fabryczny','3× więcej']},
+              {l:'Moc szczytowa',   b:'?',  a:'+100-150%',u:'W',   bp:25, ap:92, txt:['Fabryczna','Po tuningu']} ],
+    range:  [ {l:'Zasięg',          b:'?',  a:'+60-80%', u:'km',   bp:35, ap:80, txt:['Fabryczny','Po upgrade']},
+              {l:'Pojemność baterii',b:'?', a:'Upgrade', u:'',     bp:30, ap:80, txt:['Fabryczna','Nowa bateria']},
+              {l:'Napięcie',        b:'?',  a:'+8-20%',  u:'V',    bp:50, ap:75, txt:['Fabryczne','Po upgrade']} ],
+    repair: [ {l:'Diagnoza',        b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Naprawa',         b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Wykonana']},
+              {l:'Test końcowy',    b:0,    a:1,    u:'',     bp:0,  ap:100, txt:['Brak','Zaliczony']} ],
+  };
+  return map[goal] || map['speed'];
+}
+
+const PACKAGES = {
+  speed: [
+    { name:'Odblokowanie', price:'249', badge:false, effect:'Do ~55 km/h', feats:['Odblokowanie limitu prędkości','Optymalizacja trybów','Czas realizacji: 2-3h','Zero wymiany części'] },
+    { name:'HeWang',       price:'899', badge:false, effect:'Do ~62 km/h', feats:['Nowy kontroler HeWang 48V','Wyświetlacz S966 w zestawie','Montaż i kalibracja','30 dni support'] },
+    { name:'VESC Pro',     price:'1499',badge:'Polecamy', effect:'Do ~68 km/h', feats:['Kontroler VESC Flipsky 6.7','Wyświetlacz Flipsky TFT','Moduł Bluetooth + apka','Kalibracja FOC','30 dni support','Certyfikat MaxWatt'] },
+  ],
+  power: [
+    { name:'Odblokowanie', price:'249', badge:false, effect:'+20% mocy', feats:['Odblokowanie prądu silnika','Optymalizacja trybów','Czas realizacji: 2-3h','Zero wymiany części'] },
+    { name:'HeWang',       price:'899', badge:false, effect:'+80% mocy', feats:['Nowy kontroler HeWang 48V','Wyświetlacz S966 w zestawie','Montaż i kalibracja','30 dni support'] },
+    { name:'VESC Pro',     price:'1499',badge:'Polecamy', effect:'+150% mocy', feats:['Kontroler VESC Flipsky 6.7','Wyświetlacz Flipsky TFT','Kalibracja FOC agresywna','30 dni support','Certyfikat MaxWatt'] },
+  ],
+  range: [
+    { name:'Optymalizacja', price:'249',  badge:false, effect:'+20% zasięgu', feats:['Optymalizacja prądów','Tryb eco','Lepsza rekuperacja'] },
+    { name:'Upgrade baterii',price:'od 699',badge:'Polecamy', effect:'+80% zasięgu', feats:['Nowa bateria większa pojemność','Montaż i kalibracja BMS','Wycena indywidualna','30 dni support'] },
+    { name:'VESC Pro',      price:'1499', badge:false, effect:'Moc + zasięg', feats:['VESC + optymalizacja FOC','Lepsze zarządzanie energią','Wyświetlacz Flipsky TFT','Certyfikat MaxWatt'] },
+  ],
+  repair: [
+    { name:'Diagnostyka',  price:'100',    badge:false, effect:'Znajdziemy problem', feats:['Pełna diagnostyka el.','Raport usterek na piśmie','Wycena naprawy','Zalicza się na naprawę'] },
+    { name:'Naprawa',      price:'od 150', badge:'Najczęściej', effect:'Wróci do życia', feats:['Naprawa usterki','Test końcowy','30 dni gwarancja na robociznę'] },
+    { name:'Serwis pełny', price:'od 350', badge:false, effect:'Jak nowa', feats:['Naprawa + przegląd mech.','Serwis mechaniczny','Kompletny test jazdy'] },
+  ],
+};
+
+// ─── STATE ──────────────────────────────────────────────
+let S = { brand:null, model:null, modelName:'', goals:new Set() };
+
+// ─── STEP MANAGEMENT ────────────────────────────────────
+function showStep(n) {
+  document.querySelectorAll('.config-step').forEach((el,i) => el.classList.toggle('visible', i+1===n));
+  for(let i=1;i<=4;i++){
+    const d = document.getElementById('dot-'+i);
+    d.classList.remove('active','done');
+    if(i<n) d.classList.add('done');
+    if(i===n) d.classList.add('active');
+    if(i<=3) document.getElementById('line-'+i).classList.toggle('done', i<n);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── BRAND ──────────────────────────────────────────────
+function pickBrand(brand, btn) {
+  S.brand = brand;
+  S.model = null; S.modelName = ''; S.goals = new Set();
+  document.querySelectorAll('.brand-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  buildModels(brand);
+  setTimeout(()=>showStep(2), 250);
+}
+
+function buildModels(brand) {
+  const g = document.getElementById('models-grid');
+  g.innerHTML = (MODELS[brand]||[]).map(m=>`
+    <button class="model-btn" onclick="pickModel('${m.id}','${m.name}',this)">
+      ${m.name}<div class="model-spec">${m.spec}</div>
+    </button>`).join('');
+}
+
+// ─── MODEL ──────────────────────────────────────────────
+function pickModel(id, name, btn) {
+  S.model = id; S.modelName = name; S.goals = new Set();
+  document.querySelectorAll('.model-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.querySelectorAll('.goal-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('btn-next').disabled = true;
+  setTimeout(()=>showStep(3), 250);
+}
+
+// ─── GOAL (multi-select) ────────────────────────────────
+function toggleGoal(goal, btn) {
+  btn.classList.toggle('selected');
+  if(S.goals.has(goal)) S.goals.delete(goal); else S.goals.add(goal);
+  document.getElementById('btn-next').disabled = S.goals.size === 0;
+}
+
+// ─── RESULT ─────────────────────────────────────────────
+function goToResult() {
+  buildResult();
+  showStep(4);
+}
+
+function buildResult() {
+  document.getElementById('res-model').textContent = S.modelName || 'Twoją hulajnogę';
+
+  // Pick primary goal for stats display
+  const primaryGoal = ['speed','power','range','repair'].find(g=>S.goals.has(g)) || 'speed';
+  const rawStats = (STATS[S.model] && STATS[S.model][primaryGoal]) || getDefaultStats(primaryGoal);
+
+  // Build BA stats
+  const container = document.getElementById('ba-stats');
+  container.innerHTML = rawStats.map((s,i) => {
+    const isText = s.txt;
+    const bVal = isText ? s.txt[0] : s.b;
+    const aVal = isText ? s.txt[1] : s.a;
+    return `
+      <div class="ba-stat" data-idx="${i}">
+        <div class="ba-stat-name">${s.l}</div>
+        <div class="ba-stat-row">
+          <div>
+            <div class="ba-before-val" id="bv-${i}">${bVal}${!isText?' <span class="ba-unit">'+s.u+'</span>':''}</div>
+          </div>
+          <div class="ba-arrow">→</div>
+          <div style="text-align:right">
+            <div class="ba-after-val" id="av-${i}">${bVal}${!isText?' <span class="ba-unit">'+s.u+'</span>':''}</div>
+          </div>
+        </div>
+        ${!isText ? `
+        <div class="ba-bar-wrap">
+          <div class="ba-bar"><div class="ba-bar-fill before-fill" id="bf-${i}" style="width:${s.bp}%"></div></div>
+          <div></div>
+          <div class="ba-bar"><div class="ba-bar-fill after-fill" id="af-${i}" style="width:0%"></div></div>
+        </div>
+        <div class="ba-delta" id="delta-${i}"></div>` : ''}
+      </div>`;
+  }).join('');
+
+  // Build packages — show for each selected goal
+  const primaryPkg = S.goals.has('repair') ? 'repair' : (S.goals.has('range') ? 'range' : (S.goals.has('power') ? 'power' : 'speed'));
+  const pkgs = PACKAGES[primaryPkg] || PACKAGES['speed'];
+  document.getElementById('pkgs-row').innerHTML = pkgs.map(p=>`
+    <div class="pkg-mini ${p.badge==='Polecamy'?'hot':''}">
+      ${p.badge?`<div class="pkg-mini-badge">${p.badge}</div>`:''}
+      <div class="pkg-mini-name">${p.name}</div>
+      <div class="pkg-mini-price">${p.price} <small>zł</small></div>
+      <div class="pkg-mini-effect">${p.effect}</div>
+      <ul class="pkg-mini-feats">${p.feats.map(f=>`<li>${f}</li>`).join('')}</ul>
+    </div>`).join('');
+
+  // Reset slider
+  const sl = document.getElementById('pwr-slider');
+  sl.value = 0; sl.style.setProperty('--v','0%');
+  document.getElementById('slider-status').textContent = 'Przeciągnij suwak żeby zobaczyć różnicę →';
+  document.getElementById('slider-status').classList.remove('unlocked');
+
+  // Store stats for slider
+  window._currentStats = rawStats;
+}
+
+// ─── SLIDER ─────────────────────────────────────────────
+function moveSlider(val) {
+  const pct = val / 100;
+  const sl = document.getElementById('pwr-slider');
+  sl.style.setProperty('--v', val + '%');
+  const stats = window._currentStats || [];
+
+  stats.forEach((s,i) => {
+    const isText = s.txt;
+    const avEl = document.getElementById('av-'+i);
+    const afEl = document.getElementById('af-'+i);
+    const bfEl = document.getElementById('bf-'+i);
+    const dtEl = document.getElementById('delta-'+i);
+    if(!avEl) return;
+
+    if(isText) {
+      const show = pct > 0.5 ? s.txt[1] : s.txt[0];
+      avEl.innerHTML = show;
+      avEl.classList.toggle('lit', pct > 0.5);
+    } else {
+      const cur = s.b + (s.a - s.b) * pct;
+      const display = cur >= 100 ? Math.round(cur) : parseFloat(cur.toFixed(1));
+      avEl.innerHTML = `${display} <span class="ba-unit">${s.u}</span>`;
+      avEl.classList.toggle('lit', pct > 0.25);
+      if(afEl) afEl.style.width = (s.bp + (s.ap - s.bp) * pct) + '%';
+      if(bfEl) bfEl.style.width = Math.max(5, s.bp * (1 - pct * 0.4)) + '%';
+      if(dtEl) {
+        if(pct > 0.05) {
+          const delta = Math.round(((s.a - s.b) / s.b) * 100);
+          dtEl.textContent = delta > 0 ? `+${delta}% wzrost` : `${delta}%`;
+        } else {
+          dtEl.textContent = '';
+        }
+      }
+    }
+  });
+
+  const status = document.getElementById('slider-status');
+  if(val >= 100) {
+    status.textContent = '🔓 ODBLOKOWANE — To możemy zrobić z Twoją hulajnogą!';
+    status.classList.add('unlocked');
+  } else if(val > 60) {
+    status.textContent = '⚡ Już blisko maksimum...';
+    status.classList.remove('unlocked');
+  } else if(val > 20) {
+    status.textContent = '→ Ciągnij dalej...';
+    status.classList.remove('unlocked');
+  } else {
+    status.textContent = 'Przeciągnij suwak żeby zobaczyć różnicę →';
+    status.classList.remove('unlocked');
+  }
+}
+
+// ─── WHATSAPP ────────────────────────────────────────────
+function sendWA() {
+  const gMap = {speed:'wyższa prędkość',power:'więcej mocy',range:'większy zasięg',repair:'naprawa/serwis'};
+  const goals = [...S.goals].map(g=>gMap[g]||g).join(', ');
+  const msg = `Cześć MaxWatt! 👋\n\nChcę zapytać o tuning:\n🛴 Marka: ${S.brand||'?'}\n📋 Model: ${S.modelName||'?'}\n🎯 Cel: ${goals||'?'}\n\nProszę o kontakt i wycenę!`;
+  window.open(`https://wa.me/48663517069?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ─── RESET ───────────────────────────────────────────────
+function reset() {
+  S = { brand:null, model:null, modelName:'', goals:new Set() };
+  document.querySelectorAll('.brand-btn,.model-btn,.goal-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('btn-next').disabled = true;
+  showStep(1);
+}
+</script>
+</body>
+</html>
